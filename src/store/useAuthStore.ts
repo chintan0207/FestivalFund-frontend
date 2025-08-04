@@ -10,6 +10,7 @@ interface AuthState {
 
   isAuthenticated: boolean;
   isLoginLoading: boolean;
+  isRegisterLoading: boolean;
   setTokens: (tokens: AuthTokens) => void;
   setUser: (user: User) => void;
 
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoginLoading: false,
+      isRegisterLoading: false,
 
       setTokens: (tokens) => {
         set({
@@ -54,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               tokens: { accessToken, refreshToken },
               isAuthenticated: true,
-              setUser: loggedInUser,
+              user: loggedInUser,
             });
 
             toast.success(response?.data?.message || "Login successful");
@@ -62,12 +64,15 @@ export const useAuthStore = create<AuthState>()(
           return response?.data?.success;
         } catch (error) {
           console.error("Login error:", error);
+        } finally {
+          set({ isLoginLoading: false });
         }
       },
 
       register: async (userData: User) => {
+        set({ isRegisterLoading: true });
         try {
-          const response = await axiosInstance.post("/auth/register", userData);
+          const response = await axiosInstance.post(`/auth/register`, userData);
           const { accessToken, refreshToken, loggedInUser } =
             response.data.data;
 
@@ -75,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               tokens: { accessToken, refreshToken },
               isAuthenticated: true,
-              setUser: loggedInUser,
+              user: loggedInUser,
             });
 
             toast.success(response?.data?.message || "Registration successful");
@@ -83,6 +88,8 @@ export const useAuthStore = create<AuthState>()(
           return response?.data?.success;
         } catch (error) {
           console.error("Registration error:", error);
+        } finally {
+          set({ isRegisterLoading: false });
         }
       },
 

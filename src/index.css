@@ -118,3 +118,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+.input-error {
+  @apply pl-1 text-xs text-red-500 absolute top-14;
+}
+
+@theme {
+  --color-PRIMARY: #2563eb;
+  --color-PRIMARY-50: #f8fafc;
+  --color-PRIMARY-100: #dbeafe;
+  --color-PRIMARY-200: #bfdbfe;
+  --color-PRIMARY-300: #93c5fd;
+  --color-PRIMARY-400: #60a5fa;
+  --color-PRIMARY-500: #3b82f6;
+  --color-PRIMARY-600: #2563eb;
+  --color-PRIMARY-700: #1d4ed8;
+  --color-PRIMARY-800: #1e40af;
+  --color-PRIMARY-900: #1e3a8a;
+}
