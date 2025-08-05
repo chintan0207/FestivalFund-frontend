@@ -20,3 +20,10 @@ export const loginSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const festivalSchema = z.object({
+  name: z.string().min(1, "Festival name is required"),
+  year: z.number().min(1, "Year is required"),
+});
+
+export type Festival = z.infer<typeof festivalSchema>;

@@ -23,9 +23,7 @@ export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // get current active segment from URL
   const activeView = location.pathname.split("/")[1] || "dashboard";
-  console.log("activeView", activeView);
 
   const mainNavItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, color: "text-blue-500" },

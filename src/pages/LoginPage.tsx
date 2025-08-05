@@ -92,7 +92,7 @@ const LoginPage = () => {
               {isLoginLoading ? (
                 <ButtonLoading />
               ) : (
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full rounded-2xl">
                   Login
                 </Button>
               )}

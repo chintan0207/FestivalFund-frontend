@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Activity,
   Calendar,
@@ -15,33 +16,61 @@ import {
 } from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
+import { AddFestivalModal } from "./AddFestivalModal";
+import { useState } from "react";
+import { useFestivalStore } from "@/store/useFestivalStore";
+import { FestivalDropdown } from "./FestivalDropdown";
 
 const Dashboard = () => {
+  const { addFestival, currentFestival } = useFestivalStore();
+  const [showModal, setShowModal] = useState(false);
+  const [editData, setEditData] = useState<null | {
+    name: string;
+    year: number;
+    openingBalance: number;
+  }>(null);
+
+  const handleAddFestival = async (data: {
+    name: string;
+    year: number;
+    openingBalance: number;
+  }) => {
+    const success = await addFestival(data);
+    if (success) setShowModal(false);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(amount);
+  };
+
   const summaryCards = [
     {
       title: "Opening Balance",
-      value: 0,
+      value: currentFestival?.stats?.openingBalance ?? 0,
       icon: DollarSign,
       color: "from-blue-500 to-blue-600",
       subtitle: "Initial funds",
     },
     {
       title: "Total Collected",
-      value: 6500,
+      value: currentFestival?.stats?.totalCollected ?? 0,
       icon: TrendingUp,
       color: "from-green-500 to-emerald-600",
       subtitle: "From contributions",
     },
     {
       title: "Total Spent",
-      value: 9000,
+      value: currentFestival?.stats?.totalExpenses ?? 0,
       icon: TrendingDown,
       color: "from-red-500 to-pink-600",
       subtitle: "On expenses",
     },
     {
       title: "Current Balance",
-      value: 10000,
+      value: currentFestival?.stats?.currentBalance ?? 0,
       icon: Activity,
       color: "from-purple-500 to-purple-600",
       subtitle: "Available funds",
@@ -51,30 +80,23 @@ const Dashboard = () => {
   const quickStats = [
     {
       label: "Pending Amount",
-      value: 4000,
+      value: currentFestival?.stats?.pendingAmount ?? 0,
       icon: Clock,
       color: "text-amber-600",
     },
     {
       label: "Total Contributors",
-      value: 20,
+      value: 20, // replace with actual count from API if available
       icon: Users,
       color: "text-blue-600",
     },
     {
       label: "Total Expenses",
-      value: 30,
+      value: 30, // replace with actual count from API if available
       icon: Receipt,
       color: "text-purple-600",
     },
   ];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-    }).format(amount);
-  };
 
   return (
     <div className="space-y-6 pb-20">
@@ -84,36 +106,10 @@ const Dashboard = () => {
           <p>Overview of contributions and expenses</p>
         </div>
         {/* Festival Selector */}
-        <div className="relative">
-          <Card className="p-3 ">
-            <div className="flex items-center gap-3">
-              <div className="bg-PRIMARY p-3 rounded-full">
-                <Calendar className="w-5 h-5 text-white" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-medium">Ganesh Chaturthi</p>
-                <p className="text-sm muted-text">2025</p>
-              </div>
-              <ChevronDown className="w-5 h-5" />
-            </div>
-          </Card>
-
-          {/* Always visible list */}
-          {/* <div className="absolute top-full mt-2 w-full card p-2 z-10 shadow-lg">
-            <div className="w-full text-left p-3 rounded-lg transition-colors bg-PRIMARY text-white">
-              <p className="font-medium">Ganesh Chaturthi</p>
-              <p className="text-sm opacity-75">2025</p>
-            </div>
-
-            <div className="w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-100">
-              <p className="font-medium">Navratri</p>
-              <p className="text-sm opacity-75">2025</p>
-            </div>
-          </div> */}
-        </div>
+        <FestivalDropdown />
       </div>
 
-      {/* Summary Cards without animation */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card, index) => {
           const Icon = card.icon;
@@ -145,7 +141,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/*quick overview*/}
+      {/* Quick Overview */}
       <div>
         <Card
           variant="outlined"
@@ -181,13 +177,19 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/*Actions card*/}
+      {/* Actions and Festival Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
         <Card variant="outlined">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <div className="space-y-3">
-            <Button className="w-full rounded-2xl h-12">
+            <Button
+              onClick={() => {
+                setEditData(null);
+                setShowModal(true);
+              }}
+              className="w-full rounded-2xl h-12"
+            >
               <Sparkles className="w-5 h-5" />
               Create New Festival
             </Button>
@@ -205,22 +207,35 @@ const Dashboard = () => {
         {/* Festival Info */}
         <Card variant="outlined">
           <h2 className="text-lg font-semibold mb-4">Festival Details</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="muted-text">Festival Name</span>
-              <span className="font-medium">Ganesh Chaturthi</span>
+          {currentFestival ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="muted-text">Festival Name</span>
+                <span className="font-medium">{currentFestival.name}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="muted-text">Year</span>
+                <span className="font-medium">{currentFestival.year}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="muted-text">Opening Balance</span>
+                <span className="font-medium">
+                  {formatCurrency(currentFestival.stats?.openingBalance ?? 0)}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="muted-text">Year</span>
-              <span className="font-medium">2025</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="muted-text">Opening Balance</span>
-              <span className="font-medium">Rs. 20,000</span>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-gray-500">No festival selected</p>
+          )}
         </Card>
       </div>
+
+      <AddFestivalModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleAddFestival}
+        initialData={editData ?? undefined}
+      />
     </div>
   );
 };

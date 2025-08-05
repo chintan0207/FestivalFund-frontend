@@ -10,3 +10,20 @@ export interface AuthTokens {
   accessToken: string | null;
   refreshToken: string | null;
 }
+
+export interface FestivalStats {
+  openingBalance: number;
+  totalCollected: number;
+  pendingAmount: number;
+  totalExpenses: number;
+  currentBalance: number;
+}
+
+export interface Festival {
+  _id: string;
+  name: string;
+  year: number;
+  stats: FestivalStats;
+  createdAt: string;
+  updatedAt: string;
+}

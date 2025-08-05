@@ -34,8 +34,6 @@ const RegisterPage = () => {
 
     const result = registerSchema.safeParse(formData);
 
-    console.log("result");
-
     if (!result.success) {
       const errors: Partial<Record<keyof RegisterInput, string>> = {};
       result.error.issues.forEach((err) => {
@@ -133,7 +131,7 @@ const RegisterPage = () => {
               {isRegisterLoading ? (
                 <ButtonLoading />
               ) : (
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full rounded-2xl">
                   Register
                 </Button>
               )}
