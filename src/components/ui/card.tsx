@@ -1,15 +1,42 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+const cardVariants = cva(
+  "flex flex-col gap-6 rounded-xl border py-6 shadow-sm transition-colors ",
+  {
+    variants: {
+      variant: {
+        default: "bg-card text-card-foreground border-border",
+        outlined:
+          "bg-white border rounded-3xl border-border text-card-foreground ",
+        elevated: "bg-card shadow-lg text-card-foreground",
+        primary: "bg-primary text-primary-foreground border-primary shadow-md",
+        muted: "bg-muted text-muted-foreground border-muted",
+      },
+      size: {
+        sm: "p-4 text-sm",
+        md: "p-6",
+        lg: "p-8 text-lg",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "md",
+    },
+  }
+);
+
+export interface CardProps
+  extends React.ComponentProps<"div">,
+    VariantProps<typeof cardVariants> {}
+
+function Card({ className, variant, size, ...props }: CardProps) {
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        className
-      )}
+      className={cn(cardVariants({ variant, size }), className)}
       {...props}
     />
   );
@@ -89,4 +116,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  cardVariants,
 };

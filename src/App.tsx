@@ -20,13 +20,13 @@ const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/contributions" element={<Contributions />} />
-              <Route path="/contributors" element={<Contributors />} />
-              <Route path="/expenses" element={<Expenses />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="contributions" element={<Contributions />} />
+              <Route path="contributors" element={<Contributors />} />
+              <Route path="expenses" element={<Expenses />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Route>
         </Routes>

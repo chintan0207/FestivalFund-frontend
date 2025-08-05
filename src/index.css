@@ -119,10 +119,6 @@
   }
 }
 
-.input-error {
-  @apply pl-1 text-xs text-red-500 absolute top-14;
-}
-
 @theme {
   --color-PRIMARY: #2563eb;
   --color-PRIMARY-50: #f8fafc;
@@ -135,4 +131,16 @@
   --color-PRIMARY-700: #1d4ed8;
   --color-PRIMARY-800: #1e40af;
   --color-PRIMARY-900: #1e3a8a;
+}
+
+.input-error {
+  @apply pl-1 text-xs text-red-500 absolute top-14;
+}
+
+.heading h1 {
+  @apply text-2xl font-bold;
+}
+
+.heading p {
+  @apply text-gray-600;
 }

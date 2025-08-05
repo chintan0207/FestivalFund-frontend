@@ -72,7 +72,7 @@ export function Header() {
   return (
     <>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 safe-area-top shadow">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white safe-area-top shadow">
         <div className="nav-card">
           <div className="px-2 md:px-6 py-4">
             <div className="flex items-center justify-between">
@@ -201,7 +201,7 @@ export function Header() {
       )}
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:block fixed top-24 left-4 right-4 z-40 shadow rounded-3xl">
+      <nav className="hidden bg-white md:block fixed top-24 left-4 right-4 z-40 shadow rounded-3xl">
         <div className="nav-card p-2">
           <div className="flex space-x-2">
             {mainNavItems.map((item) => {
@@ -225,7 +225,7 @@ export function Header() {
       </nav>
 
       {/* Bottom Navigation - Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 safe-area-bottom bg-white">
         <div className="nav-card rounded-none rounded-t-3xl border-t border-gray-200">
           <div className="px-4 py-3">
             <div className="flex items-center justify-around">
