@@ -23,6 +23,7 @@ export interface Festival {
   _id: string;
   name: string;
   year: number;
+  openingBalance: number;
   stats: FestivalStats;
   createdAt: string;
   updatedAt: string;

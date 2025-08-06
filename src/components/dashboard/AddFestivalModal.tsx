@@ -12,10 +12,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Calendar, IndianRupee, Sparkle } from "lucide-react";
-import { festivalSchema, type Festival } from "@/lib/validation";
+import { festivalSchema } from "@/lib/validation";
 import { useFestivalStore } from "@/store/useFestivalStore";
 
-interface FestivalData {
+export interface FestivalData {
   name: string;
   year: number;
   openingBalance: number;
@@ -43,17 +43,13 @@ export function AddFestivalModal({
   });
 
   const [formErrors, setFormErrors] = useState<
-    Partial<Record<keyof Festival, string>>
+    Partial<Record<keyof FestivalData, string>>
   >({});
 
-  // Load initial data if editing
+  // Fill in values if editing
   useEffect(() => {
     if (initialData) {
-      setFestival({
-        name: initialData.name,
-        year: initialData.year,
-        openingBalance: initialData.openingBalance,
-      });
+      setFestival(initialData);
     } else {
       setFestival({
         name: "",
@@ -65,7 +61,6 @@ export function AddFestivalModal({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
     setFestival((prev) => ({
       ...prev,
       [name]:
@@ -75,7 +70,6 @@ export function AddFestivalModal({
             : Number(value)
           : value,
     }));
-
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -84,9 +78,9 @@ export function AddFestivalModal({
 
     const result = festivalSchema.safeParse(festival);
     if (!result.success) {
-      const errors: Partial<Record<keyof Festival, string>> = {};
+      const errors: Partial<Record<keyof FestivalData, string>> = {};
       result.error.issues.forEach((err) => {
-        const field = err.path[0] as keyof Festival;
+        const field = err.path[0] as keyof FestivalData;
         errors[field] = err.message;
       });
       setFormErrors(errors);
@@ -143,7 +137,7 @@ export function AddFestivalModal({
               )}
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-2 relative">
               <Label htmlFor="openingBalance">Opening Balance</Label>
               <Input
                 id="openingBalance"
@@ -154,6 +148,9 @@ export function AddFestivalModal({
                 placeholder="e.g. 15000"
                 leftIcon={<IndianRupee className="w-4 h-4" />}
               />
+              {formErrors.openingBalance && (
+                <span className="input-error">{formErrors.openingBalance}</span>
+              )}
             </div>
           </div>
 

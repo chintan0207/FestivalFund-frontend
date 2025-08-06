@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Activity,
-  Calendar,
-  ChevronDown,
   Clock,
   DollarSign,
   Download,

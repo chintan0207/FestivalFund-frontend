@@ -3,7 +3,7 @@ import type { Festival } from "@/types/types";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
-interface FestivalState {
+export interface FestivalState {
   currentFestival: Festival | null;
   setCurrentFestival: (festival: Festival) => void;
   festivals: Festival[];
@@ -69,7 +69,10 @@ export const useFestivalStore = create<FestivalState>((set, get) => ({
   updateFestival: async (id, updatedData) => {
     set({ isbtnLoading: true });
     try {
-      const { data } = await axiosInstance.put(`/festivals/${id}`, updatedData);
+      const { data } = await axiosInstance.patch(
+        `/festivals/${id}`,
+        updatedData
+      );
       if (data?.success) {
         set({
           festivals: get().festivals.map((festival) =>
