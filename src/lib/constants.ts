@@ -1,10 +1,10 @@
 export const API_URL = "http://localhost:8081/api";
 
 export const colors = [
-  "bg-violet-600",
-  "bg-pink-500",
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-orange-500",
-  "bg-red-500",
+  "bg-gradient-to-r from-green-500 to-emerald-500",
+  "bg-gradient-to-r from-indigo-500 to-purple-500",
+  "bg-gradient-to-r from-pink-500 to-rose-500",
+  "bg-gradient-to-r from-blue-500 to-cyan-500",
+  "bg-gradient-to-r from-orange-500 to-amber-500",
+  "bg-gradient-to-r from-red-500 to-pink-500",
 ];
