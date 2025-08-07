@@ -28,3 +28,12 @@ export interface Festival {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Contributor {
+  _id: string;
+  name: string;
+  phoneNumber: string;
+  address: string;
+  category: string;
+  festivalId: string;
+}

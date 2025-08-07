@@ -60,7 +60,7 @@ const Contributions = () => {
               {/* Top section with icon */}
               <div className="flex items-center gap-5">
                 <div
-                  className={`w-14 h-14 sm:w-12 sm:h-12 bg-gradient-to-r ${card.color} rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300`}
+                  className={`w-14 h-14 sm:w-12 sm:h-12 bg-gradient-to-r ${card?.color} rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300`}
                 >
                   <Icon className="w-7 h-7 sm:w-6 sm:h-6 text-white" />
                 </div>
