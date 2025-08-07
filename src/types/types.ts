@@ -37,3 +37,18 @@ export interface Contributor {
   category: string;
   festivalId: string;
 }
+
+export interface contribution {
+  _id: string;
+  contributorId: string;
+  festivalId: string;
+  type: string;
+  status: string;
+  amount: number;
+  date: string;
+  itemName?: string;
+  quantity?: number;
+  estimatedValue?: number;
+  createdAt: string;
+  updatedAt: string;
+}
