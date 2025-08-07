@@ -52,3 +52,13 @@ export interface contribution {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Expense {
+  _id: string;
+  festivalId: string;
+  amount: number;
+  date: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
