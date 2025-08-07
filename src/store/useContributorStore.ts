@@ -13,10 +13,10 @@ interface ContributorState {
   getSingleContributor: (id: string) => Promise<void>;
   addContributor: (data: Contributor) => Promise<boolean>;
   updateContributor: (
-    id: string,
+    id: string | undefined,
     data: Partial<Contributor>
   ) => Promise<boolean>;
-  deleteContributor: (id: string) => Promise<boolean>;
+  deleteContributor: (id: string | undefined | null) => Promise<boolean>;
 }
 
 export const useContributorStore = create<ContributorState>((set, get) => ({
@@ -36,8 +36,8 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       }
       return data?.success;
     } catch (error) {
-      console.error("Error fetching festivals:", error);
-      toast.error("Failed to load festivals.");
+      console.error("Error fetching contributors:", error);
+      toast.error("Failed to load contributors.");
     } finally {
       set({ isLoading: false });
     }
@@ -53,8 +53,8 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       }
       return data?.success;
     } catch (error) {
-      console.error("Error fetching festivals:", error);
-      toast.error("Failed to load festivals.");
+      console.error("Error fetching contributors:", error);
+      toast.error("Failed to load contributors.");
     } finally {
       set({ isLoading: false });
     }
@@ -85,7 +85,11 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
         contributor
       );
       if (data?.success) {
-        set({ contributor: data?.data });
+        set({
+          contributors: get().contributors.map((c) =>
+            c._id === id ? data?.data : c
+          ),
+        });
         toast.success(data?.message);
       } else {
         toast.error(data?.message);

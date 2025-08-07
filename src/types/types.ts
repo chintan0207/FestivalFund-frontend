@@ -41,12 +41,12 @@ export interface FestivalReport {
 }
 
 export interface Contributor {
-  _id: string;
+  _id?: string | null | undefined;
   name: string;
-  phoneNumber: string;
-  address: string;
+  phoneNumber?: string;
+  address?: string;
   category: string;
-  festivalId: string;
+  festivalId?: string;
 }
 
 export interface contribution {

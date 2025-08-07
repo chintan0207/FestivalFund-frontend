@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Edit,
   Filter,
@@ -5,7 +6,6 @@ import {
   Phone,
   Plus,
   Search,
-  Trash,
   User,
   Users,
 } from "lucide-react";
@@ -13,8 +13,24 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { colors } from "@/lib/constants";
+import { useContributorStore } from "@/store/useContributorStore";
+import { useEffect, useState } from "react";
+import { AddContributorModal } from "./AddContributorModal";
+import type { Contributor } from "@/types/types";
+import { Skeleton } from "../ui/skeleton";
+import { DeleteContributorDialog } from "./DeleteContributorDialog";
 
 const Contributors = () => {
+  const {
+    fetchContributors,
+    contributors,
+    updateContributor,
+    addContributor,
+    isLoading,
+  } = useContributorStore();
+  const [showModal, setShowModal] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+
   const summaryCards = [
     {
       title: "Total",
@@ -41,6 +57,34 @@ const Contributors = () => {
       color: "from-purple-500 to-purple-600",
     },
   ];
+
+  useEffect(() => {
+    fetchContributors();
+  }, []);
+
+  const handleSaveContributor = async (data: Contributor) => {
+    const success = editData
+      ? await updateContributor(editData?._id, data)
+      : await addContributor(data);
+
+    if (success) {
+      setShowModal(false);
+      setEditData(null);
+    }
+  };
+
+  const handleEditContributor = (contributor: Contributor) => {
+    setEditData({
+      _id: contributor._id,
+      name: contributor.name,
+      category: contributor.category,
+      phoneNumber: contributor.phoneNumber ?? "",
+      address: contributor.address ?? "",
+    });
+
+    setShowModal(true);
+  };
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -48,7 +92,13 @@ const Contributors = () => {
           <h1>Contributors </h1>
           <p>Manage festival contributors and their details</p>
         </div>
-        <Button className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-green-500 to-emerald-600">
+        <Button
+          onClick={() => {
+            setEditData(null);
+            setShowModal(true);
+          }}
+          className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-green-500 to-emerald-600"
+        >
           <Plus className="h-4 w-4" />
           Add Contributor
         </Button>
@@ -117,72 +167,98 @@ const Contributors = () => {
       </Card>
 
       <div className="space-y-4">
-        <Card variant="outlined" className="flex flex-col items-center">
-          <User className="w-10 h-10 " />
-          <h3 className="text-xl font-semibold">No contributors found</h3>
-          <Button className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-green-500 to-emerald-600">
-            <Plus className="h-4 w-4" />
-            Add First Contributor
-          </Button>
-        </Card>
-
-        {[1, 2, 3].map((_, index) => (
-          <Card
-            key={index}
-            className="rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start space-x-4 flex-1">
-                {/* Avatar */}
-                <div
-                  className={`w-12 h-12 ${
-                    colors[index % colors.length]
-                  } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
-                >
-                  J
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="font-semibold text-lg text-gray-900 group-hover:text-gray-700 transition-colors">
-                      John Doe
-                    </h3>
-                    <span className="status-badge bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
-                      Category
-                    </span>
-                  </div>
-
-                  {/* Contact Info - responsive */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-1 text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span>+91 9876543210</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">123 Main Street, City</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center space-x-2">
-                {/* Edit */}
-                <button className="p-2 hover:bg-blue-50 rounded-full transition-colors">
-                  <Edit className="w-5 h-5 text-blue-500" />
-                </button>
-
-                {/* Delete */}
-                <button className="p-2 hover:bg-red-50 rounded-full transition-colors">
-                  <Trash className="w-5 h-5 text-red-500" />
-                </button>
-              </div>
-            </div>
+        {contributors?.length === 0 ? (
+          <Card variant="outlined" className="flex flex-col items-center">
+            <User className="w-10 h-10 " />
+            <h3 className="text-xl font-semibold">No contributors found</h3>
+            <Button className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-green-500 to-emerald-600">
+              <Plus className="h-4 w-4" />
+              Add First Contributor
+            </Button>
           </Card>
-        ))}
+        ) : (
+          <>
+            {contributors?.map((contributor, index) => (
+              <>
+                {isLoading ? (
+                  <Card className="p-0 border-0">
+                    <Skeleton className="h-[70px] rounded-xl" />
+                  </Card>
+                ) : (
+                  <Card
+                    key={index}
+                    className="rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 w-full relative"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-end">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-12 h-12 ${
+                            colors[index % colors.length]
+                          } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+                        >
+                          {contributor?.name?.charAt(0).toUpperCase() ?? "?"}
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          {contributor?.name && (
+                            <h3 className="font-semibold text-base text-gray-900">
+                              {contributor.name}
+                            </h3>
+                          )}
+                          {contributor?.category && (
+                            <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full w-fit">
+                              {contributor.category}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {(contributor?.phoneNumber || contributor?.address) && (
+                        <div className="flex flex-col gap-2 text-sm text-gray-600 pl-1 mt-3 ml-3">
+                          {contributor?.phoneNumber && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-gray-500" />
+                              <span>{contributor.phoneNumber}</span>
+                            </div>
+                          )}
+                          {contributor?.address && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-gray-500" />
+                              <span className="break-words">
+                                {contributor.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex justify-end gap-3 md:absolute md:top-4 md:right-4">
+                        <button
+                          onClick={() => handleEditContributor(contributor)}
+                          className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                        >
+                          <Edit className="w-5 h-5 text-blue-500" />
+                        </button>
+                        <DeleteContributorDialog
+                          contributorId={contributor._id}
+                          contributorName={contributor.name}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                )}
+              </>
+            ))}
+          </>
+        )}
       </div>
+
+      <AddContributorModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleSaveContributor}
+        initialData={editData ?? undefined}
+      />
     </div>
   );
 };

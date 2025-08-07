@@ -58,7 +58,7 @@ import { Loader2Icon } from "lucide-react";
 
 export function ButtonLoading() {
   return (
-    <Button className="w-full" size="sm" disabled>
+    <Button className="w-full sm:w-auto" disabled>
       <Loader2Icon className="animate-spin" />
       Loading...
     </Button>

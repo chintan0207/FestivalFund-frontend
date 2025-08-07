@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar, IndianRupee, Sparkle } from "lucide-react";
+import { Calendar, IndianRupee, Loader2Icon, Sparkle } from "lucide-react";
 import { festivalSchema } from "@/lib/validation";
 import { useFestivalStore } from "@/store/useFestivalStore";
 
@@ -163,7 +163,13 @@ export function AddFestivalModal({
             {isbtnLoading ? (
               <ButtonLoading />
             ) : (
-              <Button className="rounded-2xl" type="submit">
+              <Button
+                className="rounded-2xl flex items-center gap-2"
+                type="submit"
+              >
+                {isbtnLoading && (
+                  <Loader2Icon className="animate-spin w-4 h-4" />
+                )}
                 {initialData ? "Save Changes" : "Add Festival"}
               </Button>
             )}

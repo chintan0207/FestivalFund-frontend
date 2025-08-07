@@ -27,3 +27,13 @@ export const festivalSchema = z.object({
 });
 
 export type Festival = z.infer<typeof festivalSchema>;
+
+export const contributorSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  // phoneNumber: z
+  //   .string()
+  //   .min(10, "Phone number must be 10 digits")
+  //   .regex(/^\d{10}$/, "Invalid phone number"),
+  // address: z.string().min(1, "Address is required"),
+  category: z.string().min(1, "Category is required"),
+});
