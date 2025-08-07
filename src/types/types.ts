@@ -29,6 +29,17 @@ export interface Festival {
   updatedAt: string;
 }
 
+export interface FestivalReport {
+  festival: Festival;
+  year: number;
+  totalCash: number;
+  totalCollected: number;
+  totalItemsValue: number;
+  totalExpenses: number;
+  contributionCount: number;
+  expenseCount: number;
+}
+
 export interface Contributor {
   _id: string;
   name: string;
