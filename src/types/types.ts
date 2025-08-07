@@ -73,3 +73,10 @@ export interface Expense {
   createdAt: string;
   updatedAt: string;
 }
+
+
+export type Options = {
+  skipPagination?: boolean;
+  search?: string;
+  category?: string;
+};

@@ -1,7 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosInstance from "@/lib/axios";
-import type { Contributor } from "@/types/types";
+import { createQueryParams } from "@/lib/utils";
+import type { Contributor, Options } from "@/types/types";
 import { toast } from "sonner";
 import { create } from "zustand";
+
+interface SearchFilter {
+  search: string;
+  category: string;
+}
+
+interface QueryData {
+  page?: number | undefined;
+  limit?: number | undefined;
+}
 
 interface ContributorState {
   contributor: Contributor | null;
@@ -9,7 +21,22 @@ interface ContributorState {
   isLoading: boolean;
   isbtnLoading: boolean;
 
-  fetchContributors: () => Promise<void>;
+  searchFilter: SearchFilter;
+  setSearchFilter: (searchFilter: SearchFilter) => void;
+
+  queryData: QueryData;
+  setQueryData: (queryData: QueryData) => void;
+
+  sorting: {
+    sortField: string;
+    sortOrder: string;
+  };
+  setSorting: (sortField: string, sortOrder: string) => void;
+
+  numOfRecords: number;
+  setNumOfRecords: (count: number) => void;
+
+  fetchContributors: (options?: Options) => Promise<void>;
   getSingleContributor: (id: string) => Promise<void>;
   addContributor: (data: Contributor) => Promise<boolean>;
   updateContributor: (
@@ -25,12 +52,60 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
   isLoading: false,
   isbtnLoading: false,
 
-  fetchContributors: async () => {
-    set({ isLoading: true });
+  searchFilter: {
+    search: "",
+    category: "",
+  },
+  setSearchFilter: (searchFilter) => {
+    set({ searchFilter });
+  },
+
+  queryData: {
+    page: 1,
+    limit: 10,
+  },
+  setQueryData: (queryData) => {
+    set({ queryData });
+  },
+
+  sorting: {
+    sortField: "",
+    sortOrder: "",
+  },
+  setSorting: (sortField, sortOrder) => {
+    set({ sorting: { sortField, sortOrder } });
+  },
+
+  numOfRecords: 0,
+  setNumOfRecords: (count) => set({ numOfRecords: count }),
+
+  fetchContributors: async (options) => {
     try {
-      const { data } = await axiosInstance.get("/contributors");
+      set({ isLoading: true });
+
+      const { searchFilter, queryData, sorting } = get();
+
+      let combinedData: any = {
+        ...searchFilter,
+        ...sorting,
+      };
+
+      if (!options?.skipPagination) {
+        combinedData = {
+          ...combinedData,
+          ...queryData,
+        };
+      }
+
+      const queryParams = createQueryParams(combinedData);
+
+      const { data } = await axiosInstance.get(`/contributors${queryParams}`);
       if (data.success) {
-        set({ contributors: data?.data?.contributors, isLoading: false });
+        set({
+          contributors: data?.data?.contributors,
+          numOfRecords: data?.data?.total,
+          isLoading: false,
+        });
       } else {
         toast.error(data?.message);
       }

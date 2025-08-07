@@ -8,3 +8,22 @@ export const colors = [
   "bg-gradient-to-r from-orange-500 to-amber-500",
   "bg-gradient-to-r from-red-500 to-pink-500",
 ];
+
+export const contributorCategories = [
+  {
+    label: "All",
+    value: "",
+  },
+  {
+    label: "Parents",
+    value: "Parents",
+  },
+  {
+    label: "Boys",
+    value: "Boys",
+  },
+  {
+    label: "Girls",
+    value: "Girls",
+  },
+];

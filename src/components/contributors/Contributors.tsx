@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  ChevronDown,
   Edit,
   Filter,
   MapPin,
@@ -12,13 +15,22 @@ import {
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
-import { colors } from "@/lib/constants";
+import { colors, contributorCategories } from "@/lib/constants";
 import { useContributorStore } from "@/store/useContributorStore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AddContributorModal } from "./AddContributorModal";
 import type { Contributor } from "@/types/types";
 import { Skeleton } from "../ui/skeleton";
 import { DeleteContributorDialog } from "./DeleteContributorDialog";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { createQueryParams } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Pagination } from "../ui/Pagination";
 
 const Contributors = () => {
   const {
@@ -27,14 +39,18 @@ const Contributors = () => {
     updateContributor,
     addContributor,
     isLoading,
+    queryData,
+    searchFilter,
+    setSearchFilter,
+    setQueryData,
+    sorting,
+    numOfRecords,
   } = useContributorStore();
-  const [showModal, setShowModal] = useState(false);
-  const [editData, setEditData] = useState<any>(null);
 
   const summaryCards = [
     {
       title: "Total",
-      value: 5,
+      value: contributors?.length,
       icon: Users,
       color: "from-blue-500 to-blue-600",
     },
@@ -58,9 +74,89 @@ const Contributors = () => {
     },
   ];
 
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [searchValue, setSearchValue] = useState(searchFilter?.search ?? "");
+  const [category, setCategory] = useState(searchFilter?.category ?? "All");
+
+  const changeCategory = (category: string) => {
+    setCategory(category);
+    setSearchFilter({ ...searchFilter, category: category });
+  };
+
   useEffect(() => {
     fetchContributors();
+  }, [searchFilter, queryData, sorting]);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
   }, []);
+
+  useEffect(() => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const search = searchParams.get("search") || "";
+
+    const categoryParam = searchParams.get("category") || "";
+    const catagory = categoryParam;
+    setSearchValue(search);
+    setCategory(catagory);
+    setQueryData({ page, limit });
+    setSearchFilter({
+      search,
+      category,
+    });
+    setQueryData({ ...queryData, page, limit });
+  }, []);
+
+  // Sync query to URL
+  useEffect(() => {
+    const params: Record<string, string> = {};
+
+    if (queryData.page) params.page = queryData.page.toString();
+    if (queryData.limit) params.limit = queryData.limit.toString();
+    if (searchFilter.search) params.search = searchFilter.search;
+
+    if (searchFilter.category) params.category = searchFilter.category;
+
+    if (sorting.sortField !== "createdAt") params.sortField = sorting.sortField;
+    if (sorting.sortOrder !== "desc") params.sortOrder = sorting.sortOrder;
+
+    const query = createQueryParams(params);
+
+    // Update URL: include query params only if there are active filters/sorting
+    if (Object.keys(params).length > 0) {
+      setSearchParams(query);
+      navigate(`/Contributors${query}`);
+    } else {
+      setSearchParams({});
+      navigate(`/Contributors`);
+    }
+  }, [queryData, searchFilter, sorting]);
+
+  const handlePageChange = (newPage: number) => {
+    setQueryData({ ...queryData, page: newPage });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchFilter({
+        ...searchFilter,
+        search: value,
+      });
+      setQueryData({ ...queryData, page: 1 });
+    }, 300);
+  };
 
   const handleSaveContributor = async (data: Contributor) => {
     const success = editData
@@ -84,6 +180,9 @@ const Contributors = () => {
 
     setShowModal(true);
   };
+
+  const page = queryData.page ?? 1;
+  const limit = queryData.limit ?? 10;
 
   return (
     <div className="space-y-6 pb-20">
@@ -140,6 +239,8 @@ const Contributors = () => {
             type="text"
             placeholder="Search by name or address..."
             className="p-6 pl-12 "
+            value={searchValue}
+            onChange={handleSearchChange}
           />
         </div>
 
@@ -151,18 +252,16 @@ const Contributors = () => {
           </div>
 
           {/* Example Categories */}
-          <Button className="px-4 py-2 rounded-xl text-sm font-medium gradient-primary text-white shadow-lg border-transparent">
-            All
-          </Button>
-          <Button className="px-4 py-2 rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 border border-gray-200">
-            Category 1
-          </Button>
-          <Button className="px-4 py-2 rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 border border-gray-200">
-            Category 2
-          </Button>
-          <Button className="px-4 py-2 rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 border border-gray-200">
-            Category 3
-          </Button>
+          {contributorCategories?.map((cat, index) => (
+            <Button
+              key={index}
+              onClick={() => changeCategory(cat.value)}
+              variant={category === cat.value ? "default" : "outline"}
+              className="rounded-2xl "
+            >
+              {cat.label}
+            </Button>
+          ))}
         </div>
       </Card>
 
@@ -218,7 +317,12 @@ const Contributors = () => {
                           {contributor?.phoneNumber && (
                             <div className="flex items-center gap-2">
                               <Phone className="w-4 h-4 text-gray-500" />
-                              <span>{contributor.phoneNumber}</span>
+                              <a
+                                href={`tel:${contributor.phoneNumber}`}
+                                className="hover:underline focus:outline-none"
+                              >
+                                {contributor.phoneNumber}
+                              </a>
                             </div>
                           )}
                           {contributor?.address && (
@@ -251,6 +355,56 @@ const Contributors = () => {
             ))}
           </>
         )}
+      </div>
+
+      <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* Rows per page selector */}
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <p className="whitespace-nowrap">Rows per page:</p>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[64px] justify-between"
+              >
+                {queryData?.limit}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {[2, 5, 10, 20, 50].map((size) => (
+                <DropdownMenuItem
+                  key={size}
+                  onClick={() => {
+                    setQueryData({ ...queryData, limit: size, page: 1 });
+                  }}
+                >
+                  {size}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className="text-xs sm:text-sm">
+            {queryData
+              ? `${Math.min((page - 1) * limit + 1, numOfRecords)}–${Math.min(
+                  page * limit,
+                  numOfRecords
+                )} of ${numOfRecords}`
+              : `0 of ${numOfRecords}`}
+          </div>
+        </div>
+
+        {/* Pagination controls */}
+        <div className="flex justify-start sm:justify-end">
+          <Pagination
+            currentPage={queryData?.page ?? 1}
+            totalPages={Math.ceil(numOfRecords / (queryData?.limit ?? 10))}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
 
       <AddContributorModal

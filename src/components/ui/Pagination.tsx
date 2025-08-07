@@ -61,6 +61,7 @@ export const Pagination = ({
         ) : (
           <Button
             key={idx}
+            variant={page === currentPage ? "default" : "ghost"}
             size="sm"
             onClick={() => onPageChange(page)}
             className={
