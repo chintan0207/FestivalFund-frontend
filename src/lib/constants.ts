@@ -27,3 +27,50 @@ export const contributorCategories = [
     value: "Girls",
   },
 ];
+
+export const contributionStatuses = [
+  {
+    label: "All",
+    value: "",
+  },
+  {
+    label: "Deposited",
+    value: "deposited",
+  },
+  {
+    label: "Pending",
+    value: "pending",
+  },
+  {
+    label: "Cancelled",
+    value: "cancelled",
+  },
+];
+
+
+export const ContributionTypeEnum = {
+  CASH: "cash",
+  ITEM: "item",
+};
+
+export const AvailableContributionTypes = Object.values(ContributionTypeEnum);
+
+export const ContributionStatusEnum = {
+  DEPOSITED: "deposited",
+  PENDING: "pending",
+  CANCELLED: "cancelled",
+};
+
+export const AvailableContributionStatuses = Object.values(
+  ContributionStatusEnum
+);
+
+export const ContributorCategoryEnum = {
+  PARENT: "Parents",
+  BOY: "Boys",
+  GIRL: "Girls",
+};
+
+export const AvailableContributorCategories = Object.values(
+  ContributorCategoryEnum
+);

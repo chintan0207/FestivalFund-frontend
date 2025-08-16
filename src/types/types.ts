@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface User {
   _id?: string;
   name?: string;
@@ -50,18 +51,21 @@ export interface Contributor {
 }
 
 export interface contribution {
-  _id: string;
-  contributorId: string;
-  festivalId: string;
-  type: string;
-  status: string;
-  amount: number;
-  date: string;
+  contributor?: any;
+  _id?: string | any;
+  contributorId?: string;
+  festivalId?: string;
+  name?: string;
+  category?: string;
+  phoneNumber?: string;
+  address?: string;
+  type?: string;
+  status?: string;
+  amount?: number | any;
+  date?: any;
   itemName?: string;
-  quantity?: number;
-  estimatedValue?: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Expense {
@@ -74,9 +78,9 @@ export interface Expense {
   updatedAt: string;
 }
 
-
 export type Options = {
   skipPagination?: boolean;
   search?: string;
   category?: string;
+  festivalId?: string;
 };

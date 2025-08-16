@@ -116,7 +116,7 @@ export function AddContributorModal({
                 name="name"
                 value={contributor?.name}
                 onChange={handleChange}
-                placeholder="e.g. Krish"
+                placeholder="e.g. Chintan Patel"
                 leftIcon={<User className="w-4 h-4" />}
               />
               {formErrors?.name && (
@@ -155,7 +155,7 @@ export function AddContributorModal({
                 type="tel"
                 value={contributor?.phoneNumber}
                 onChange={handleChange}
-                placeholder="e.g. 9876543210"
+                placeholder="e.g. 7624041844"
                 leftIcon={<Phone className="w-4 h-4" />}
               />
               {formErrors?.phoneNumber && (
@@ -170,7 +170,7 @@ export function AddContributorModal({
                 name="address"
                 value={contributor?.address}
                 onChange={handleChange}
-                placeholder="e.g. Street 123"
+                placeholder="e.g. Dukan faliya, Ghej"
                 leftIcon={<Home className="w-4 h-4" />}
               />
               {formErrors?.address && (

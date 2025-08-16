@@ -133,10 +133,10 @@ const Contributors = () => {
     // Update URL: include query params only if there are active filters/sorting
     if (Object.keys(params).length > 0) {
       setSearchParams(query);
-      navigate(`/Contributors${query}`);
+      navigate(`/contributors${query}`);
     } else {
       setSearchParams({});
-      navigate(`/Contributors`);
+      navigate(`/contributors`);
     }
   }, [queryData, searchFilter, sorting]);
 

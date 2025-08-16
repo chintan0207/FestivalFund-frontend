@@ -24,7 +24,7 @@ export interface FestivalState {
 
   updateFestival: (id: string, data: Partial<Festival>) => Promise<boolean>;
   deleteFestival: (id: string) => Promise<boolean>;
-  getFestivalStats: (id: string) => Promise<void>;
+  getFestivalStats: (id: string | undefined) => Promise<void>;
   getFestivalReport: (id: string) => Promise<void>;
 }
 

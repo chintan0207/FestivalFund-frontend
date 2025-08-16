@@ -1,14 +1,43 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosInstance from "@/lib/axios";
-import type { contribution } from "@/types/types";
+import type { contribution, Options } from "@/types/types";
 import { toast } from "sonner";
 import { create } from "zustand";
+import { useFestivalStore } from "./useFestivalStore";
+import { createQueryParams } from "@/lib/utils";
+
+interface SearchFilter {
+  search: string;
+  status: string;
+}
+
+interface QueryData {
+  page?: number | undefined;
+  limit?: number | undefined;
+}
 
 interface ContributionState {
   contribution: contribution | null;
   contributions: contribution[];
   isLoading: boolean;
   isbtnLoading: boolean;
-  fetchContributions: () => Promise<void>;
+
+  searchFilter: SearchFilter;
+  setSearchFilter: (searchFilter: SearchFilter) => void;
+
+  queryData: QueryData;
+  setQueryData: (queryData: QueryData) => void;
+
+  sorting: {
+    sortField: string;
+    sortOrder: string;
+  };
+  setSorting: (sortField: string, sortOrder: string) => void;
+
+  numOfRecords: number;
+  setNumOfRecords: (count: number) => void;
+
+  fetchContributions: (options?: Options) => Promise<void>;
   getSingleContribution: (id: string) => Promise<void>;
   addContribution: (data: contribution) => Promise<boolean>;
   updateContribution: (
@@ -25,14 +54,68 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
   isLoading: false,
   isbtnLoading: false,
 
-  fetchContributions: async () => {
+  searchFilter: {
+    search: "",
+    status: "",
+  },
+  setSearchFilter: (searchFilter) => {
+    set({ searchFilter });
+  },
+
+  queryData: {
+    page: 1,
+    limit: 10,
+  },
+  setQueryData: (queryData) => {
+    set({ queryData });
+  },
+
+  sorting: {
+    sortField: "",
+    sortOrder: "",
+  },
+  setSorting: (sortField, sortOrder) => {
+    set({ sorting: { sortField, sortOrder } });
+  },
+
+  numOfRecords: 0,
+  setNumOfRecords: (count) => set({ numOfRecords: count }),
+
+  fetchContributions: async (options) => {
     set({ isLoading: true });
 
     try {
-      const { data } = await axiosInstance.get("/contributions");
+      const { searchFilter, queryData, sorting } = get();
+
+      let combinedData: any = {
+        ...searchFilter,
+        ...sorting,
+      };
+
+      if (!options?.skipPagination) {
+        combinedData = {
+          ...combinedData,
+          ...queryData,
+        };
+      }
+
+      if (options?.festivalId) {
+        combinedData = {
+          ...combinedData,
+          festivalId: options?.festivalId,
+        };
+      }
+
+      const queryParams = createQueryParams(combinedData);
+
+      const { data } = await axiosInstance.get(`/contributions${queryParams}`);
 
       if (data.success) {
-        set({ contributions: data?.data?.contributions, isLoading: false });
+        set({
+          contributions: data?.data?.contributions,
+          numOfRecords: data?.data?.total,
+          isLoading: false,
+        });
       } else {
         toast.error(data?.message);
       }
@@ -74,7 +157,12 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       const { data } = await axiosInstance.post("/contributions", contribution);
 
       if (data?.success) {
-        set({ contributions: [...get().contributions, data?.data] });
+        set({
+          contributions: [...get().contributions, data?.data?.contribution],
+        });
+
+        useFestivalStore.setState({ festivalStats: data.data.festivalStats });
+
         toast.success(data?.message);
       } else {
         toast.error(data?.message);
@@ -99,7 +187,14 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       );
 
       if (data?.success) {
-        set({ contribution: data?.data });
+        set({
+          contributions: get().contributions.map((c) =>
+            c._id === id ? data.data.contribution : c
+          ),
+        });
+
+        useFestivalStore.setState({ festivalStats: data.data.festivalStats });
+
         toast.success(data?.message);
       } else {
         toast.error(data?.message);
@@ -121,7 +216,14 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       const { data } = await axiosInstance.delete(`/contributions/${id}`);
 
       if (data?.success) {
-        set({ contributions: get().contributions.filter((c) => c._id !== id) });
+        const deletedId = data?.data?.contribution?._id || id;
+
+        set({
+          contributions: get().contributions.filter((c) => c._id !== deletedId),
+        });
+
+        useFestivalStore.setState({ festivalStats: data.data.festivalStats });
+
         toast.success(data?.message);
       } else {
         toast.error(data?.message);
