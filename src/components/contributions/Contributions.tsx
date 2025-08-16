@@ -4,11 +4,14 @@ import {
   CheckCircle,
   ChevronDown,
   Clock,
-  Download,
+  Edit,
+  // Download,
   Filter,
   Plus,
   Receipt,
   Search,
+  SortAsc,
+  SortDesc,
   User,
 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -32,6 +35,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { Skeleton } from "../ui/skeleton";
+import { DeleteContributionDialog } from "./DeleteContributionDialog";
 
 const Contributions = () => {
   const { getFestivalStats, currentFestival, festivalStats } =
@@ -40,6 +45,7 @@ const Contributions = () => {
   const {
     contributions,
     fetchContributions,
+    isLoading,
     updateContribution,
     addContribution,
     queryData,
@@ -47,6 +53,7 @@ const Contributions = () => {
     setSearchFilter,
     setQueryData,
     sorting,
+    setSorting,
     numOfRecords,
   } = useContributionStore();
 
@@ -163,7 +170,25 @@ const Contributions = () => {
     }, 300);
   };
 
+  const changeSort = (field: string) => {
+    if (sorting.sortField === field) {
+      setSorting({
+        sortField: field,
+        sortOrder: sorting.sortOrder === "asc" ? "desc" : "asc",
+      });
+    } else {
+      setSorting({ sortField: field, sortOrder: "asc" });
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchValue("");
+    changeStatus(""); // reset status
+    setSorting({ sortField: "createdAt", sortOrder: "asc" }); // reset sorting
+  };
+
   const handleSaveContribution = async (data: contribution) => {
+    console.log("Saving contribution:", data);
     const success = editData
       ? await updateContribution(editData._id, data)
       : await addContribution(data);
@@ -174,14 +199,26 @@ const Contributions = () => {
     }
   };
 
-  const handleStatusChange = (
+  const handleEditContribution = (c: contribution) => {
+    setEditData({
+      ...c,
+      _id: c._id,
+      itemName: c.itemName ?? "",
+      amount: c.amount ?? 0,
+      type: c.type,
+    });
+
+    setShowModal(true);
+  };
+
+  const handleStatusChange = async (
     id: string,
     newStatus: string,
     currentData: contribution
   ) => {
     const normalizedStatus = newStatus.toLowerCase();
 
-    updateContribution(id, {
+    await updateContribution(id, {
       ...currentData,
       status: normalizedStatus,
     });
@@ -238,33 +275,84 @@ const Contributions = () => {
           })}
         </div>
 
-        {/* Search & Filters */}
-        <Card className="space-y-2 rounded-4xl">
-          <div className="relative">
+        <Card className="space-y-3 rounded-4xl p-3 md:p-5">
+          <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               type="text"
               placeholder="Search by name..."
-              className="p-6 pl-12"
+              className="p-5 pl-12 w-full"
               value={searchValue}
               onChange={handleSearchChange}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center space-x-2 mr-4">
-              <Filter className="w-5 h-5 muted-text" />
-              <span className="text-sm font-medium muted-text">Filter by:</span>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-2">
+                <Filter className="w-5 h-5 text-gray-500" />
+                <span className="text-sm font-medium text-gray-600">
+                  Filter by:
+                </span>
+              </div>
+              {contributionStatuses?.map((item, index) => (
+                <Button
+                  key={index}
+                  onClick={() => changeStatus(item.value)}
+                  variant={status === item.value ? "default" : "outline"}
+                  className="rounded-2xl text-sm"
+                  size={"sm"}
+                >
+                  {item.label}
+                </Button>
+              ))}
             </div>
-            {contributionStatuses?.map((item, index) => (
+
+            {/* Sorting */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">
+                Sort by:
+              </span>
               <Button
-                key={index}
-                onClick={() => changeStatus(item.value)}
-                variant={status === item.value ? "default" : "outline"}
-                className="rounded-2xl "
+                onClick={() => changeSort("name")}
+                variant={sorting.sortField === "name" ? "default" : "outline"}
+                className="rounded-2xl flex items-center gap-1 text-sm"
+                size={"sm"}
               >
-                {item.label}
+                Name{" "}
+                {sorting.sortField === "name" &&
+                  (sorting.sortOrder === "asc" ? (
+                    <SortAsc className="w-4 h-4" />
+                  ) : (
+                    <SortDesc className="w-4 h-4" />
+                  ))}
               </Button>
-            ))}
+              <Button
+                onClick={() => changeSort("amount")}
+                variant={sorting.sortField === "amount" ? "default" : "outline"}
+                className="rounded-2xl flex items-center gap-1 text-sm"
+                size={"sm"}
+              >
+                Amount{" "}
+                {sorting.sortField === "amount" &&
+                  (sorting.sortOrder === "asc" ? (
+                    <SortAsc className="w-4 h-4" />
+                  ) : (
+                    <SortDesc className="w-4 h-4" />
+                  ))}
+              </Button>
+
+              {/* Clear button */}
+              <Button
+                onClick={clearFilters}
+                variant="destructive"
+                className="rounded-2xl text-sm"
+                size={"sm"}
+              >
+                Clear
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -299,112 +387,137 @@ const Contributions = () => {
             </Card>
           ) : viewMode === "minimal" ? (
             contributions.map((c) => (
-              <Card
-                key={c._id}
-                className="rounded-2xl p-4 shadow-sm hover:shadow-md"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">{c?.contributor?.name}</span>
-
-                  <span className="font-medium">
-                    {c.type === "cash"
-                      ? formatCurrency(c.amount)
-                      : c.itemName || "N/A"}
-                  </span>
-
-                  <span
-                    className={`status-badge ${
-                      c.status === ContributionStatusEnum.DEPOSITED
-                        ? "bg-green-100 text-green-700"
-                        : c.status === ContributionStatusEnum.PENDING
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                    } text-xs px-2 py-0.5 rounded-full`}
+              <>
+                {isLoading ? (
+                  <Card className="p-0 border-0">
+                    <Skeleton className="h-[40px] rounded-xl" />
+                  </Card>
+                ) : (
+                  <Card
+                    key={c._id}
+                    className="rounded-2xl p-4 shadow-sm hover:shadow-md"
                   >
-                    {c.status}
-                  </span>
-                </div>
-              </Card>
+                    <div className="flex items-center">
+                      <span className="font-semibold flex-6">
+                        {c?.contributor?.name}
+                      </span>
+
+                      <span className="font-medium flex-3">
+                        {c.type === "cash"
+                          ? formatCurrency(c.amount)
+                          : c.itemName || "N/A"}
+                      </span>
+
+                      <span
+                        className={`status-badge  ${
+                          c.status === ContributionStatusEnum.DEPOSITED
+                            ? "bg-green-100 text-green-700"
+                            : c.status === ContributionStatusEnum.PENDING
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                        } text-xs px-2 py-0.5 rounded-full`}
+                      >
+                        {c.status}
+                      </span>
+                    </div>
+                  </Card>
+                )}
+              </>
             ))
           ) : (
             contributions.map((c, index) => (
-              <Card
-                key={c._id}
-                className="rounded-2xl p-6 shadow-sm hover:shadow-md"
-              >
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div
-                      className={`w-12 h-12 ${
-                        colors[index % colors.length]
-                      } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
-                    >
-                      {c?.contributor?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0 ">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-semibold text-lg">
-                          {c?.contributor?.name}
-                        </h3>
-                        <span
-                          className={`status-badge ${
-                            c.status === ContributionStatusEnum.DEPOSITED
-                              ? "bg-green-100 text-green-700"
-                              : c.status === ContributionStatusEnum.PENDING
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                          } text-xs px-2 py-0.5 rounded-full`}
+              <>
+                {isLoading ? (
+                  <Card className="p-0 border-0">
+                    <Skeleton className="h-[120px] rounded-xl" />
+                  </Card>
+                ) : (
+                  <Card
+                    key={c._id}
+                    className="rounded-2xl p-6 shadow-sm hover:shadow-md relative"
+                  >
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-start space-x-4 flex-1">
+                        <div
+                          className={`w-12 h-12 ${
+                            colors[index % colors.length]
+                          } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
                         >
-                          {c.status}
-                        </span>
+                          {c?.contributor?.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0 ">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="font-semibold text-lg">
+                              {c?.contributor?.name}
+                            </h3>
+                            <span
+                              className={`status-badge ${
+                                c.status === ContributionStatusEnum.DEPOSITED
+                                  ? "bg-green-100 text-green-700"
+                                  : c.status === ContributionStatusEnum.PENDING
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                              } text-xs px-2 py-0.5 rounded-full`}
+                            >
+                              {c.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="muted-text">
+                                {c.type === "cash" ? "Amount" : "Item"}:
+                              </span>
+                              <p className="font-semibold text-lg">
+                                {c.type === "cash"
+                                  ? formatCurrency(c.amount)
+                                  : c.itemName || "N/A"}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="muted-text">Date:</span>
+                              <p>{new Date(c.date).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="muted-text">
-                            {c.type === "cash" ? "Amount" : "Item"}:
-                          </span>
-                          <p className="font-semibold text-lg">
-                            {c.type === "cash"
-                              ? formatCurrency(c.amount)
-                              : c.itemName || "N/A"}
-                          </p>
+                      <div className="flex flex-col justify-end sm:flex-row gap-2 w-full">
+                        <select
+                          value={c.status}
+                          onChange={(e) =>
+                            handleStatusChange(c._id, e.target.value, c)
+                          }
+                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm  lg:w-[200px]"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="deposited">Deposited</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+
+                        <div className="flex justify-end gap-3 md:absolute md:top-4 md:right-4">
+                          <button
+                            onClick={() => handleEditContribution(c)}
+                            className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                          >
+                            <Edit className="w-5 h-5 text-blue-500" />
+                          </button>
+                          <DeleteContributionDialog contributionId={c._id} />
                         </div>
-                        <div>
-                          <span className="muted-text">Date:</span>
-                          <p>{new Date(c.date).toLocaleDateString()}</p>
-                        </div>
+
+                        {/* <Button variant="outline">
+                          <Download className="w-5 h-5" />
+                          <span>Generate Slip</span>
+                        </Button> */}
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col justify-end sm:flex-row gap-2 w-full">
-                    <select
-                      value={c.status}
-                      onChange={(e) =>
-                        handleStatusChange(c._id, e.target.value, c)
-                      }
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm  lg:w-[200px]"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="deposited">Deposited</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-
-                    <Button variant="outline">
-                      <Download className="w-5 h-5" />
-                      <span>Generate Slip</span>
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+                  </Card>
+                )}
+              </>
             ))
           )}
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          {/* Rows per page selector */}
+        <div className="mt-8 flex sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <p className="whitespace-nowrap">Rows per page:</p>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

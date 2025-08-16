@@ -32,7 +32,7 @@ interface ContributionState {
     sortField: string;
     sortOrder: string;
   };
-  setSorting: (sortField: string, sortOrder: string) => void;
+  setSorting: (sorting: { sortField: string; sortOrder: string }) => void;
 
   numOfRecords: number;
   setNumOfRecords: (count: number) => void;
@@ -44,7 +44,7 @@ interface ContributionState {
     id: string,
     data: Partial<contribution>
   ) => Promise<boolean>;
-  deleteContribution: (id: string) => Promise<boolean>;
+  deleteContribution: (id: string | undefined | null) => Promise<boolean>;
   getContributionSlip: (id: string) => Promise<void>;
 }
 
@@ -74,7 +74,7 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
     sortField: "",
     sortOrder: "",
   },
-  setSorting: (sortField, sortOrder) => {
+  setSorting: ({ sortField, sortOrder }) => {
     set({ sorting: { sortField, sortOrder } });
   },
 
@@ -176,10 +176,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       set({ isbtnLoading: false });
     }
   },
-
   updateContribution: async (id: string, contribution) => {
     set({ isbtnLoading: true });
-
+    console.log("contribution", contribution);
     try {
       const { data } = await axiosInstance.patch(
         `/contributions/${id}`,
@@ -209,7 +208,7 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
     }
   },
 
-  deleteContribution: async (id: string) => {
+  deleteContribution: async (id) => {
     set({ isbtnLoading: true });
 
     try {

@@ -357,11 +357,8 @@ const Contributors = () => {
         )}
       </div>
 
-      <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        {/* Rows per page selector */}
+      <div className="mt-8 flex sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <p className="whitespace-nowrap">Rows per page:</p>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

@@ -42,7 +42,7 @@ export const Pagination = ({
   const pages = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-center mt-4">
+    <div className="flex items-center justify-center">
       <Button
         variant="ghost"
         size="sm"

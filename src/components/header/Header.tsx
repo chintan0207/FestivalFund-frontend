@@ -154,7 +154,7 @@ export function Header() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleNavigate(item.label)}
+                    onClick={() => handleNavigate(item.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl ${
                       isActive ? "bg-gray-200" : "hover:bg-gray-50"
                     }`}
@@ -208,7 +208,7 @@ export function Header() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => handleNavigate(item.label)}
+                  onClick={() => handleNavigate(item.id)}
                   className={`flex items-center space-x-2 px-4 py-3 rounded-xl ${
                     isActive ? "bg-gray-200" : "hover:bg-gray-50"
                   }`}
@@ -233,7 +233,7 @@ export function Header() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleNavigate(item.label)}
+                    onClick={() => handleNavigate(item.id)}
                     className={`flex flex-col items-center space-y-1 p-2 rounded-xl ${
                       isActive ? "bg-gray-200" : "hover:bg-gray-50"
                     }`}
@@ -250,7 +250,7 @@ export function Header() {
 
       {/* FAB - Mobile Only */}
       {isAdmin && (
-        <div className="md:hidden fixed bottom-20 right-4 z-50 space-y-2">
+        <div className="md:hidden fixed bottom-20 right-4 z-100 bg-white space-y-2">
           {showQuickActions && (
             <div className="space-y-3">
               {quickActions.map((action) => {

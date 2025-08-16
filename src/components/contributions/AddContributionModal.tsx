@@ -30,7 +30,6 @@ import {
 import type { contribution } from "@/types/types";
 import { useContributorStore } from "@/store/useContributorStore";
 import { useFestivalStore } from "@/store/useFestivalStore";
-import { Card } from "../ui/card";
 
 interface AddContributionModalProps {
   isOpen: boolean;
@@ -52,7 +51,7 @@ export function AddContributionModal({
     contributorId: "",
     festivalId: currentFestival?._id ?? "",
     type: ContributionTypeEnum.CASH,
-    status: ContributionStatusEnum.PENDING,
+    status: ContributionStatusEnum.PENDING, // default
     amount: null,
     date: new Date().toISOString(),
     itemName: "",
@@ -80,7 +79,7 @@ export function AddContributionModal({
             ? initialData.date
             : new Date(initialData.date).toISOString(),
       });
-      setSearchTerm("");
+      setSearchTerm(initialData.contributor?.name ?? "");
     } else {
       setContribution(emptyContribution);
       setSearchTerm("");
@@ -113,7 +112,6 @@ export function AddContributionModal({
   };
 
   const selectContributor = (contributor: any) => {
-    console.log("Selected contributor:", contributor);
     setContribution((prev) => ({ ...prev, contributorId: contributor._id }));
     setIsNewContributor(false);
     setSearchTerm(contributor.name);
@@ -123,7 +121,6 @@ export function AddContributionModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prevent sending empty contributorId to backend
     const payload: any = {
       ...contribution,
       ...(isNewContributor && newContributor),
@@ -160,7 +157,7 @@ export function AddContributionModal({
               placeholder="Search contributor by name"
             />
             {suggestions.length > 0 && (
-              <div className=" z-10 bg-white border rounded-md mt-1 w-full shadow-lg max-h-40 overflow-auto">
+              <div className="z-10 bg-white border rounded-md mt-1 w-full shadow-lg max-h-40 overflow-auto">
                 {suggestions.map((c) => (
                   <div
                     key={c._id}
@@ -187,7 +184,7 @@ export function AddContributionModal({
 
           {/* New Contributor Fields */}
           {isNewContributor && (
-            <div className="mb-6 space-y-2 p-4 rounded-md  border border-gray-100">
+            <div className="mb-6 space-y-2 p-4 rounded-md border border-gray-100">
               <div className="grid gap-2 mb-4">
                 <Label>Name</Label>
                 <Input
@@ -251,28 +248,54 @@ export function AddContributionModal({
           )}
 
           {/* Contribution Details */}
-          <div className="flex items-center gap-3 mt-2">
-            <div className="grid gap-2 w-full">
-              <Label>Contribution Type</Label>
-              <Select
-                value={contribution.type}
-                onValueChange={(value) =>
-                  setContribution((prev) => ({ ...prev, type: value }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  {AvailableContributionTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="flex items-center gap-3">
+              {/* Type */}
+              <div className="grid gap-2 w-full">
+                <Label>Contribution Type</Label>
+                <Select
+                  value={contribution.type}
+                  onValueChange={(value) =>
+                    setContribution((prev) => ({ ...prev, type: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    {AvailableContributionTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status */}
+              <div className="grid gap-2 w-full">
+                <Label>Status</Label>
+                <Select
+                  value={contribution.status}
+                  onValueChange={(value) =>
+                    setContribution((prev) => ({ ...prev, status: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    {Object.values(ContributionStatusEnum).map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
+            {/* Amount (if cash) */}
             {contribution.type === "cash" && (
               <div className="grid gap-2 w-full">
                 <Label>Amount</Label>
@@ -291,6 +314,7 @@ export function AddContributionModal({
               </div>
             )}
 
+            {/* Item Name (if item) */}
             {contribution.type === "item" && (
               <div className="grid gap-2 w-full">
                 <Label>Item Name</Label>
