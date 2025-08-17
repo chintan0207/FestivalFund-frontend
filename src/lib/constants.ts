@@ -47,11 +47,37 @@ export const contributionStatuses = [
   },
 ];
 
-
 export const ContributionTypeEnum = {
   CASH: "cash",
   ITEM: "item",
 };
+
+export const expenseCategories = [
+  {
+    label: "All",
+    value: "",
+  },
+  {
+    label: "Mahaprasad",
+    value: "mahaprasad",
+  },
+  {
+    label: "Decoration",
+    value: "decoration",
+  },
+  {
+    label: "Mandap",
+    value: "mandap",
+  },
+  {
+    label: "Sound",
+    value: "sound",
+  },
+  {
+    label: "Other",
+    value: "other",
+  },
+];
 
 export const AvailableContributionTypes = Object.values(ContributionTypeEnum);
 
@@ -74,3 +100,13 @@ export const ContributorCategoryEnum = {
 export const AvailableContributorCategories = Object.values(
   ContributorCategoryEnum
 );
+
+export const ExpenseCategoryEnum = {
+  MAHAPRASAD: "Mahaprasad",
+  DECORATION: "Decoration",
+  MANDAP: "Mandap",
+  SOUND: "Sound",
+  OTHER: "Other",
+};
+
+export const AvailableExpenseCategories = Object.values(ExpenseCategoryEnum);

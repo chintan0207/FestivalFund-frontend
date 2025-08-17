@@ -9,7 +9,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { Trash } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useContributionStore } from "@/store/useContributionStore";
 
 interface DeleteContributionDialogProps {
@@ -29,7 +29,7 @@ export function DeleteContributionDialog({
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <button className="p-2 hover:bg-red-50 rounded-full">
-          <Trash className="w-4 h-4 text-red-600" />
+          <Trash2 className="w-5 h-5 text-red-600" />
         </button>
       </AlertDialogTrigger>
       <AlertDialogContent>

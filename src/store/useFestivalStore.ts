@@ -33,7 +33,10 @@ export const useFestivalStore = create<FestivalState>()(
     (set, get) => ({
       currentFestival: null,
       setCurrentFestival: (festival: Festival) =>
-        set({ currentFestival: festival }),
+        set({
+          currentFestival: festival,
+          festivalStats: festival.stats ?? null,
+        }),
       festivals: [],
       festivalStats: {
         openingBalance: 0,
@@ -61,8 +64,16 @@ export const useFestivalStore = create<FestivalState>()(
         set({ isLoading: true });
         try {
           const { data } = await axiosInstance.get("/festivals");
-          if (data.success) {
+          if (data?.success) {
             set({ festivals: data?.data, isLoading: false });
+
+            if (!get().currentFestival && data.data.length > 0) {
+              const firstFestival = data.data[0];
+              set({
+                currentFestival: firstFestival,
+                festivalStats: firstFestival.stats ?? null,
+              });
+            }
           } else {
             toast.error(data?.message);
           }

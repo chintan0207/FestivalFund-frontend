@@ -291,7 +291,7 @@ const Contributors = () => {
                     <div className="flex flex-col md:flex-row md:items-end">
                       <div className="flex items-center gap-4">
                         <div
-                          className={`w-12 h-12 ${
+                          className={`w-10 h-10 ${
                             colors[index % colors.length]
                           } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
                         >
