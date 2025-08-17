@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Utensils,
   Sparkles,
@@ -18,6 +19,8 @@ import { formatCurrency } from "@/lib/utils";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { expenseCategories } from "@/lib/constants";
+import AddExpenseModal from "./AddExpenseModal";
+import { useState } from "react";
 
 const Expenses = () => {
   const summaryCards = [
@@ -122,6 +125,13 @@ const Expenses = () => {
 
   const isAdmin = true;
 
+  const [showModal, setShowModal] = useState(false);
+
+  const handleAddExpense = (expense: any) => {
+    console.log("New expense added:", expense);
+    // call API
+  };
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -132,7 +142,7 @@ const Expenses = () => {
         <Button
           onClick={() => {
             // setEditData(null);
-            // setShowModal(true);
+            setShowModal(true);
           }}
           className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-red-500 to-pink-600"
         >
@@ -288,6 +298,12 @@ const Expenses = () => {
           ))
         )}
       </div>
+
+      <AddExpenseModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleAddExpense}
+      />
     </div>
   );
 };

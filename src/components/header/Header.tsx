@@ -229,7 +229,7 @@ export function Header() {
             <div className="flex items-center justify-around">
               {mainNavItems.slice(0, 4).map((item) => {
                 const Icon = item.icon;
-                const isActive = activeView === item.label;
+                const isActive = activeView === item.id;
                 return (
                   <button
                     key={item.id}
