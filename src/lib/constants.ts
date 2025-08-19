@@ -1,4 +1,4 @@
-export const API_URL = "https://festivalfund-backend.onrender.com";
+export const API_URL = "https://festivalfund-backend.onrender.com/api";
 
 export const colors = [
   "bg-gradient-to-r from-green-500 to-emerald-500",
