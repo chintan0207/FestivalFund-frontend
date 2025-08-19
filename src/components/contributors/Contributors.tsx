@@ -10,7 +10,7 @@ import {
   Plus,
   Search,
   User,
-  Users,
+  // Users,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -50,32 +50,32 @@ const Contributors = () => {
 
   const { isAdmin } = useAuthStore();
 
-  const summaryCards = [
-    {
-      title: "Total",
-      value: numOfRecords,
-      icon: Users,
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      title: "Parents",
-      value: 2,
-      icon: User,
-      color: "from-green-500 to-emerald-600",
-    },
-    {
-      title: "Boys",
-      value: 2,
-      icon: User,
-      color: "from-red-500 to-pink-600",
-    },
-    {
-      title: "Girls",
-      value: 1,
-      icon: User,
-      color: "from-purple-500 to-purple-600",
-    },
-  ];
+  // const summaryCards = [
+  //   {
+  //     title: "Total",
+  //     value: numOfRecords,
+  //     icon: Users,
+  //     color: "from-blue-500 to-blue-600",
+  //   },
+  //   {
+  //     title: "Parents",
+  //     value: 2,
+  //     icon: User,
+  //     color: "from-green-500 to-emerald-600",
+  //   },
+  //   {
+  //     title: "Boys",
+  //     value: 2,
+  //     icon: User,
+  //     color: "from-red-500 to-pink-600",
+  //   },
+  //   {
+  //     title: "Girls",
+  //     value: 1,
+  //     icon: User,
+  //     color: "from-purple-500 to-purple-600",
+  //   },
+  // ];
 
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
