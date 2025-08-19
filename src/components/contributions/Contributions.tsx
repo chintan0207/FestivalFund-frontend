@@ -21,6 +21,7 @@ import {
   colors,
   ContributionStatusEnum,
   contributionStatuses,
+  contributorCategories,
 } from "@/lib/constants";
 import { createQueryParams, formatCurrency } from "@/lib/utils";
 import { useFestivalStore } from "@/store/useFestivalStore";
@@ -44,11 +45,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Contributions = () => {
   const { getFestivalStats, currentFestival, festivalStats } =
     useFestivalStore();
-
+  const { isAdmin } = useAuthStore();
   const {
     contributions,
     fetchContributions,
@@ -74,6 +76,7 @@ const Contributions = () => {
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const [searchValue, setSearchValue] = useState(searchFilter?.search ?? "");
   const [status, setStatus] = useState(searchFilter?.status ?? "All");
+  const [category, setCategory] = useState(searchFilter?.category ?? "All");
 
   const changeStatus = (status: string) => {
     setStatus(status);
@@ -116,7 +119,6 @@ const Contributions = () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
   }, []);
-
   useEffect(() => {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
@@ -124,12 +126,16 @@ const Contributions = () => {
 
     const statusParam = searchParams.get("status") || "";
     const status = statusParam;
+    const categoryParam = searchParams.get("category") || "";
+    const category = categoryParam;
     setSearchValue(search);
     setStatus(status);
+    setCategory(category);
     setQueryData({ page, limit });
     setSearchFilter({
       search,
       status,
+      category: category,
     });
     setQueryData({ ...queryData, page, limit });
   }, []);
@@ -190,12 +196,27 @@ const Contributions = () => {
 
   const clearFilters = () => {
     setSearchValue("");
-    changeStatus(""); // reset status
-    setSorting({ sortField: "createdAt", sortOrder: "asc" }); // reset sorting
+    setCategory("");
+    setStatus("");
+    setSearchFilter({
+      search: "",
+      status: "",
+      category: "",
+    });
+    setQueryData({
+      page: 1,
+      limit: 10,
+    });
+    setSorting({
+      sortField: "createdAt",
+      sortOrder: "desc",
+    });
+
+    setSearchParams({});
+    navigate("/contributions");
   };
 
   const handleSaveContribution = async (data: contribution) => {
-    console.log("Saving contribution:", data);
     const success = editData
       ? await updateContribution(editData._id, data)
       : await addContribution(data);
@@ -229,6 +250,13 @@ const Contributions = () => {
       ...currentData,
       status: normalizedStatus,
     });
+    setQueryData({ ...queryData, page: 1 });
+  };
+
+  const changeCategory = (category: string) => {
+    setCategory(category);
+    setSearchFilter({ ...searchFilter, category: category });
+    setQueryData({ ...queryData, page: 1 });
   };
 
   const page = queryData.page ?? 1;
@@ -243,16 +271,18 @@ const Contributions = () => {
             <h1>Contributions</h1>
             <p>Manage festival contributions and their details</p>
           </div>
-          <Button
-            onClick={() => {
-              setEditData(null);
-              setShowModal(true);
-            }}
-            className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600"
-          >
-            <Plus className="h-4 w-4" />
-            Add Contribution
-          </Button>
+          {isAdmin && (
+            <Button
+              onClick={() => {
+                setEditData(null);
+                setShowModal(true);
+              }}
+              className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600"
+            >
+              <Plus className="h-4 w-4" />
+              Add Contribution
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -300,7 +330,7 @@ const Contributions = () => {
               <div className="flex items-center space-x-2">
                 <Filter className="w-5 h-5 text-gray-500" />
                 <span className="text-sm font-medium text-gray-600">
-                  Filter by:
+                  Status:
                 </span>
               </div>
               {contributionStatuses?.map((item, index) => (
@@ -308,10 +338,37 @@ const Contributions = () => {
                   key={index}
                   onClick={() => changeStatus(item.value)}
                   variant={status === item.value ? "default" : "outline"}
-                  className="rounded-2xl text-sm"
+                  className={`rounded-2xl text-sm ${
+                    status === item.value
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600"
+                      : "outline text-purple-500"
+                  } `}
                   size={"sm"}
                 >
                   {item.label}
+                </Button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-2">
+                <Filter className="w-5 h-5 text-gray-500" />
+                <span className="text-sm font-medium text-gray-600">
+                  Category:
+                </span>
+              </div>
+              {contributorCategories?.map((cat, index) => (
+                <Button
+                  key={index}
+                  onClick={() => changeCategory(cat.value)}
+                  variant={category === cat.value ? "default" : "outline"}
+                  size={"sm"}
+                  className={`rounded-2xl ${
+                    category === cat.value
+                      ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                      : "outline text-green-500"
+                  } `}
+                >
+                  {cat.label}
                 </Button>
               ))}
             </div>
@@ -324,7 +381,11 @@ const Contributions = () => {
               <Button
                 onClick={() => changeSort("name")}
                 variant={sorting.sortField === "name" ? "default" : "outline"}
-                className="rounded-2xl flex items-center gap-1 text-sm"
+                className={`rounded-2xl flex items-center gap-1 text-sm ${
+                  sorting.sortField === "name"
+                    ? "bg-gradient-to-r from-purple-500 to-purple-600"
+                    : "outline text-purple-500"
+                }`}
                 size={"sm"}
               >
                 Name{" "}
@@ -338,7 +399,11 @@ const Contributions = () => {
               <Button
                 onClick={() => changeSort("amount")}
                 variant={sorting.sortField === "amount" ? "default" : "outline"}
-                className="rounded-2xl flex items-center gap-1 text-sm"
+                className={`rounded-2xl flex items-center gap-1 text-sm ${
+                  sorting.sortField === "amount"
+                    ? "bg-gradient-to-r from-purple-500 to-purple-600"
+                    : "outline text-purple-500"
+                }`}
                 size={"sm"}
               >
                 Amount{" "}
@@ -384,13 +449,15 @@ const Contributions = () => {
               <h3 className="text-xl font-semibold mb-2">
                 No contributions found
               </h3>
-              <Button
-                onClick={() => setShowModal(true)}
-                className="rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600"
-              >
-                <Plus className="h-4 w-4" />
-                Add First Contribution
-              </Button>
+              {isAdmin && (
+                <Button
+                  onClick={() => setShowModal(true)}
+                  className="rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add First Contribution
+                </Button>
+              )}
             </Card>
           ) : viewMode === "minimal" ? (
             contributions.map((c) => (
@@ -491,38 +558,40 @@ const Contributions = () => {
                         </div>
                       </div>
 
-                      <div className="flex sm:flex-row sm:items-center justify-between gap-3">
-                        <Select
-                          value={c.status}
-                          onValueChange={(value) =>
-                            handleStatusChange(c._id, value, c)
-                          }
-                        >
-                          <SelectTrigger className="sm:w-[180px] w-full border border-gray-200 rounded-lg text-sm">
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent className="w-full">
-                            {Object.values(ContributionStatusEnum).map(
-                              (status) => (
-                                <SelectItem key={status} value={status}>
-                                  {status.charAt(0).toUpperCase() +
-                                    status.slice(1)}
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleEditContribution(c)}
-                            className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                      {isAdmin && (
+                        <div className="flex sm:flex-row sm:items-center justify-between gap-3">
+                          <Select
+                            value={c.status}
+                            onValueChange={(value) =>
+                              handleStatusChange(c._id, value, c)
+                            }
                           >
-                            <Edit className="w-5 h-5 text-blue-500" />
-                          </button>
-                          <DeleteContributionDialog contributionId={c._id} />
+                            <SelectTrigger className="sm:w-[180px] w-full border border-gray-200 rounded-lg text-sm">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent className="w-full">
+                              {Object.values(ContributionStatusEnum).map(
+                                (status) => (
+                                  <SelectItem key={status} value={status}>
+                                    {status.charAt(0).toUpperCase() +
+                                      status.slice(1)}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleEditContribution(c)}
+                              className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                            >
+                              <Edit className="w-5 h-5 text-blue-500" />
+                            </button>
+                            <DeleteContributionDialog contributionId={c._id} />
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </Card>
                 )}
@@ -580,12 +649,14 @@ const Contributions = () => {
       </div>
 
       {/* Modal */}
-      <AddContributionModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleSaveContribution}
-        initialData={editData ?? undefined}
-      />
+      {isAdmin && (
+        <AddContributionModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleSaveContribution}
+          initialData={editData ?? undefined}
+        />
+      )}
     </>
   );
 };

@@ -155,7 +155,7 @@ export function AddContributorModal({
                 type="tel"
                 value={contributor?.phoneNumber}
                 onChange={handleChange}
-                placeholder="e.g. 7624041844"
+                placeholder="e.g. 9624041844"
                 leftIcon={<Phone className="w-4 h-4" />}
               />
               {formErrors?.phoneNumber && (

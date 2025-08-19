@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Pagination } from "../ui/Pagination";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Contributors = () => {
   const {
@@ -47,10 +48,12 @@ const Contributors = () => {
     numOfRecords,
   } = useContributorStore();
 
+  const { isAdmin } = useAuthStore();
+
   const summaryCards = [
     {
       title: "Total",
-      value: contributors?.length,
+      value: numOfRecords,
       icon: Users,
       color: "from-blue-500 to-blue-600",
     },
@@ -86,6 +89,7 @@ const Contributors = () => {
   const changeCategory = (category: string) => {
     setCategory(category);
     setSearchFilter({ ...searchFilter, category: category });
+    setQueryData({ ...queryData, page: 1 });
   };
 
   useEffect(() => {
@@ -98,21 +102,38 @@ const Contributors = () => {
     };
   }, []);
 
+  // Restore filters only on reload, reset on navigation back
   useEffect(() => {
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const search = searchParams.get("search") || "";
+    const navEntries = performance.getEntriesByType("navigation");
+    const isReload =
+      navEntries.length > 0 &&
+      (navEntries[0] as PerformanceNavigationTiming).type === "reload";
 
-    const categoryParam = searchParams.get("category") || "";
-    const catagory = categoryParam;
-    setSearchValue(search);
-    setCategory(catagory);
-    setQueryData({ page, limit });
-    setSearchFilter({
-      search,
-      category,
-    });
-    setQueryData({ ...queryData, page, limit });
+    if (isReload) {
+      const page = parseInt(searchParams.get("page") || "1", 10);
+      const limit = parseInt(searchParams.get("limit") || "10", 10);
+      const search = searchParams.get("search") || "";
+      const categoryParam = searchParams.get("category") || "";
+
+      setSearchValue(search);
+      setCategory(categoryParam);
+      setSearchFilter({
+        search,
+        category: categoryParam,
+      });
+      setQueryData({ ...queryData, page, limit });
+    } else {
+      setSearchValue("");
+      setCategory("");
+      setSearchFilter({
+        search: "",
+        category: "",
+      });
+      setQueryData({
+        page: 1,
+        limit: 10,
+      });
+    }
   }, []);
 
   // Sync query to URL
@@ -203,34 +224,6 @@ const Contributors = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryCards.map((card, index) => {
-          const Icon = card.icon;
-          return (
-            <Card
-              key={index}
-              variant="outlined"
-              className="hover:shadow-lg transition-all duration-300 "
-            >
-              {/* Top section with icon */}
-              <div className="flex items-center gap-5">
-                <div
-                  className={`w-14 h-14 sm:w-12 sm:h-12 bg-gradient-to-r ${card.color} rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300`}
-                >
-                  <Icon className="w-7 h-7 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-300">
-                    {card.value}
-                  </p>
-                  <h3 className="text-sm">{card.title}</h3>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
       <Card className="space-y-2 rounded-4xl">
         {/* Search */}
         <div className="relative">
@@ -248,7 +241,7 @@ const Contributors = () => {
         <div className="flex flex-wrap gap-2">
           <div className="flex items-center space-x-2 mr-4">
             <Filter className="w-5 h-5 muted-text" />
-            <span className="text-sm font-medium muted-text">Filter by:</span>
+            <span className="text-sm font-medium muted-text">Category:</span>
           </div>
 
           {/* Example Categories */}
@@ -257,7 +250,12 @@ const Contributors = () => {
               key={index}
               onClick={() => changeCategory(cat.value)}
               variant={category === cat.value ? "default" : "outline"}
-              className="rounded-2xl "
+              size={"sm"}
+              className={`rounded-2xl ${
+                category === cat.value
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                  : "outline text-green-500"
+              } `}
             >
               {cat.label}
             </Button>
@@ -277,6 +275,13 @@ const Contributors = () => {
           </Card>
         ) : (
           <>
+            <div>
+              {contributors?.length > 0 && (
+                <Button variant={"outline"} className="rounded-2xl ">
+                  Result Contributors : {numOfRecords}
+                </Button>
+              )}
+            </div>
             {contributors?.map((contributor, index) => (
               <>
                 {isLoading ? (
@@ -336,18 +341,20 @@ const Contributors = () => {
                         </div>
                       )}
 
-                      <div className="flex justify-end gap-3 md:absolute md:top-4 md:right-4">
-                        <button
-                          onClick={() => handleEditContributor(contributor)}
-                          className="p-2 hover:bg-blue-50 rounded-full transition-colors"
-                        >
-                          <Edit className="w-5 h-5 text-blue-500" />
-                        </button>
-                        <DeleteContributorDialog
-                          contributorId={contributor._id}
-                          contributorName={contributor.name}
-                        />
-                      </div>
+                      {isAdmin && (
+                        <div className="flex justify-end gap-3 md:absolute md:top-4 md:right-4">
+                          <button
+                            onClick={() => handleEditContributor(contributor)}
+                            className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                          >
+                            <Edit className="w-5 h-5 text-blue-500" />
+                          </button>
+                          <DeleteContributorDialog
+                            contributorId={contributor._id}
+                            contributorName={contributor.name}
+                          />
+                        </div>
+                      )}
                     </div>
                   </Card>
                 )}

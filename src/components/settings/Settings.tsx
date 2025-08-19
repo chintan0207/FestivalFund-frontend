@@ -26,7 +26,7 @@ const Settings = () => {
     setCurrentFestival,
     updateFestival,
   } = useFestivalStore();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAdmin } = useAuthStore();
 
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<
@@ -79,13 +79,15 @@ const Settings = () => {
             <span>Profile</span>
           </Button>
 
-          <Button
-            variant={selectedTab === "festivals" ? "default" : "outline"}
-            onClick={() => setSelectedTab("festivals")}
-          >
-            <Calendar />
-            <span>Festivals</span>
-          </Button>
+          {isAdmin && (
+            <Button
+              variant={selectedTab === "festivals" ? "default" : "outline"}
+              onClick={() => setSelectedTab("festivals")}
+            >
+              <Calendar />
+              <span>Festivals</span>
+            </Button>
+          )}
         </div>
 
         {selectedTab === "profile" && (
@@ -124,8 +126,7 @@ const Settings = () => {
             </div>
           </div>
         )}
-
-        {selectedTab === "festivals" && (
+        {isAdmin && selectedTab === "festivals" && (
           <>
             <div className="flex items-center justify-center flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h2 className="flex w-full items-center gap-2 text-lg font-semibold">

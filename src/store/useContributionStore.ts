@@ -9,6 +9,7 @@ import { createQueryParams } from "@/lib/utils";
 interface SearchFilter {
   search: string;
   status: string;
+  category: string;
 }
 
 interface QueryData {
@@ -57,6 +58,7 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
   searchFilter: {
     search: "",
     status: "",
+    category: "",
   },
   setSearchFilter: (searchFilter) => {
     set({ searchFilter });
@@ -121,9 +123,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching contributions:", error);
-      toast.error("Failed to load contributions");
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -142,9 +144,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching contribution:", error);
-      toast.error("Failed to load contribution");
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -169,16 +171,15 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding contribution:", error);
-      toast.error("Failed to add contribution");
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
   },
   updateContribution: async (id: string, contribution) => {
     set({ isbtnLoading: true });
-    console.log("contribution", contribution);
     try {
       const { data } = await axiosInstance.patch(
         `/contributions/${id}`,
@@ -200,9 +201,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating contribution:", error);
-      toast.error("Failed to update contribution");
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -229,9 +230,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting contribution:", error);
-      toast.error("Failed to delete contribution");
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -249,9 +250,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting contribution slip:", error);
-      toast.error("Failed to get contribution slip");
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }

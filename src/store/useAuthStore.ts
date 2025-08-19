@@ -7,6 +7,7 @@ import { toast } from "sonner";
 interface AuthState {
   tokens: AuthTokens;
   user: User | null;
+  isAdmin: boolean;
 
   isAuthenticated: boolean;
   isLoginLoading: boolean;
@@ -28,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: null,
       },
       user: null,
+      isAdmin: false,
       isAuthenticated: false,
       isLoginLoading: false,
       isRegisterLoading: false,
@@ -51,6 +53,12 @@ export const useAuthStore = create<AuthState>()(
 
           const { accessToken, refreshToken, loggedInUser } =
             response.data.data;
+
+          if (loggedInUser?.role === "admin") {
+            set({ isAdmin: true });
+          } else {
+            set({ isAdmin: false });
+          }
 
           if (response?.data?.success) {
             set({
@@ -114,6 +122,7 @@ export const useAuthStore = create<AuthState>()(
             tokens: { accessToken: null, refreshToken: null },
             isAuthenticated: false,
             user: null,
+            isAdmin: false,
           });
           toast.success("Logout successful");
         } catch (error) {

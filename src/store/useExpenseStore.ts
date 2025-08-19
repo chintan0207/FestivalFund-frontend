@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosInstance from "@/lib/axios";
 import type { Expense } from "@/types/types";
 import { toast } from "sonner";
@@ -35,9 +36,9 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
-      console.error("Error fetching festivals:", error);
-      toast.error("Failed to load festivals.");
+    } catch (error: any) {
+      console.error("Error fetching expenses:", error);
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -56,9 +57,9 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
-      console.error("Error fetching festivals:", error);
-      toast.error("Failed to load festivals.");
+    } catch (error: any) {
+      console.error("Error fetching expense:", error);
+      toast.error(error.response.data.message``);
     } finally {
       set({ isLoading: false });
     }
@@ -78,9 +79,9 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding festival:", error);
-      toast.error("Failed to add festival.");
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -100,9 +101,9 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
-      console.error("Error updating festival:", error);
-      toast.error("Failed to update festival.");
+    } catch (error: any) {
+      console.error("Error updating expense:", error);
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -122,9 +123,9 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       }
 
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting festival:", error);
-      toast.error("Failed to delete festival.");
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }

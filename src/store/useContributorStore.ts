@@ -110,9 +110,9 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
         toast.error(data?.message);
       }
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching contributors:", error);
-      toast.error("Failed to load contributors.");
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -127,9 +127,9 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
         toast.error(data?.message);
       }
       return data?.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching contributors:", error);
-      toast.error("Failed to load contributors.");
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -138,6 +138,7 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
     set({ isbtnLoading: true });
     try {
       const { data } = await axiosInstance.post("/contributors", Contributor);
+      console.log(" data", data);
       if (data?.success) {
         set({ contributors: [...get().contributors, data?.data] });
         toast.success(data?.message);
@@ -145,9 +146,9 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
         toast.error(data?.message);
       }
       return data?.success;
-    } catch (error) {
-      console.error("Error adding festival:", error);
-      toast.error("Failed to add festival.");
+    } catch (error: any) {
+      console.error("Error adding contributor:", error);
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -170,9 +171,9 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
         toast.error(data?.message);
       }
       return data?.success;
-    } catch (error) {
-      console.error("Error updating festival:", error);
-      toast.error("Failed to update festival.");
+    } catch (error: any) {
+      console.error("Error updating contributor:", error);
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -188,9 +189,9 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
         toast.error(data?.message);
       }
       return data?.success;
-    } catch (error) {
-      console.error("Error deleting festival:", error);
-      toast.error("Failed to delete festival.");
+    } catch (error: any) {
+      console.error("Error deleting contributor:", error);
+      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }

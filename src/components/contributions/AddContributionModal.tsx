@@ -30,6 +30,7 @@ import {
 import type { contribution } from "@/types/types";
 import { useContributorStore } from "@/store/useContributorStore";
 import { useFestivalStore } from "@/store/useFestivalStore";
+import { useContributionStore } from "@/store/useContributionStore";
 
 interface AddContributionModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export function AddContributionModal({
 }: AddContributionModalProps) {
   const { fetchContributors, contributors } = useContributorStore();
   const { currentFestival } = useFestivalStore();
+  const { isbtnLoading } = useContributionStore();
 
   const emptyContribution: contribution = {
     contributorId: "",
@@ -95,7 +97,7 @@ export function AddContributionModal({
 
   useEffect(() => {
     if (searchTerm.trim().length >= 1) {
-      fetchContributors({ search: searchTerm });
+      fetchContributors({ search: searchTerm, skipPagination: true });
     }
   }, [searchTerm, fetchContributors]);
 
@@ -147,104 +149,107 @@ export function AddContributionModal({
                 : "Search for a contributor or add a new one."}
             </DialogDescription>
           </DialogHeader>
-
-          {/* Contributor Search */}
-          <div className="grid gap-2 mt-4 relative">
-            <Label>Contributor</Label>
-            <Input
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search contributor by name"
-            />
-            {suggestions.length > 0 && (
-              <div className="z-10 bg-white border rounded-md mt-1 w-full shadow-lg max-h-40 overflow-auto">
-                {suggestions.map((c) => (
-                  <div
-                    key={c._id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => selectContributor(c)}
-                  >
-                    {c.name} ({c.category})
-                  </div>
-                ))}
-              </div>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4 rounded-2xl mb-4"
-              onClick={() => {
-                setIsNewContributor(true);
-                setContribution((prev) => ({ ...prev, contributorId: "" }));
-              }}
-            >
-              + Add New Contributor
-            </Button>
-          </div>
-
-          {/* New Contributor Fields */}
-          {isNewContributor && (
-            <div className="mb-6 space-y-2 p-4 rounded-md border border-gray-100">
-              <div className="grid gap-2 mb-4">
-                <Label>Name</Label>
+          {!initialData && (
+            <>
+              {/* Contributor Search */}
+              <div className="grid gap-2 mt-4 relative">
+                <Label>Contributor</Label>
                 <Input
-                  value={newContributor.name}
-                  placeholder="e.g. Chintan Patel"
-                  onChange={(e) =>
-                    setNewContributor({
-                      ...newContributor,
-                      name: e.target.value,
-                    })
-                  }
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Search contributor by name"
                 />
-              </div>
-              <div className="grid gap-2 mb-4">
-                <Label>Category</Label>
-                <Select
-                  value={newContributor.category}
-                  onValueChange={(val) =>
-                    setNewContributor({ ...newContributor, category: val })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent className="w-full">
-                    {AvailableContributorCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
+                {suggestions.length > 0 && (
+                  <div className="z-10 bg-white border rounded-md mt-1 w-full shadow-lg max-h-40 overflow-auto">
+                    {suggestions.map((c) => (
+                      <div
+                        key={c._id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => selectContributor(c)}
+                      >
+                        {c.name} ({c.category})
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4 rounded-2xl mb-4"
+                  onClick={() => {
+                    setIsNewContributor(true);
+                    setContribution((prev) => ({ ...prev, contributorId: "" }));
+                  }}
+                >
+                  + Add New Contributor
+                </Button>
               </div>
-              <div className="grid gap-2 mb-4">
-                <Label>Phone</Label>
-                <Input
-                  value={newContributor.phoneNumber}
-                  placeholder="e.g. 7624041844"
-                  onChange={(e) =>
-                    setNewContributor({
-                      ...newContributor,
-                      phoneNumber: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="grid gap-2 mb-4">
-                <Label>Address</Label>
-                <Input
-                  value={newContributor.address}
-                  placeholder="e.g. Dukan faliya, Ghej"
-                  onChange={(e) =>
-                    setNewContributor({
-                      ...newContributor,
-                      address: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
+
+              {/* New Contributor Fields */}
+              {isNewContributor && (
+                <div className="mb-6 space-y-2 p-4 rounded-md border border-gray-100">
+                  <div className="grid gap-2 mb-4">
+                    <Label>Name</Label>
+                    <Input
+                      value={newContributor.name}
+                      placeholder="e.g. Chintan Patel"
+                      onChange={(e) =>
+                        setNewContributor({
+                          ...newContributor,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2 mb-4">
+                    <Label>Category</Label>
+                    <Select
+                      value={newContributor.category}
+                      onValueChange={(val) =>
+                        setNewContributor({ ...newContributor, category: val })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent className="w-full">
+                        {AvailableContributorCategories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2 mb-4">
+                    <Label>Phone</Label>
+                    <Input
+                      value={newContributor.phoneNumber}
+                      placeholder="e.g. 9624041844"
+                      onChange={(e) =>
+                        setNewContributor({
+                          ...newContributor,
+                          phoneNumber: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2 mb-4">
+                    <Label>Address</Label>
+                    <Input
+                      value={newContributor.address}
+                      placeholder="e.g. Dukan faliya, Ghej"
+                      onChange={(e) =>
+                        setNewContributor({
+                          ...newContributor,
+                          address: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Contribution Details */}
@@ -337,8 +342,13 @@ export function AddContributionModal({
                 Cancel
               </Button>
             </DialogClose>
-            <Button className="rounded-2xl mb-3" type="submit">
-              <Loader2Icon className="animate-spin w-4 h-4 hidden" />
+            <Button
+              className="rounded-2xl mb-3"
+              type="submit"
+              disabled={isbtnLoading}
+            >
+              {isbtnLoading && <Loader2Icon className="animate-spin w-4 h-4" />}
+
               {initialData ? "Save Changes" : "Add Contribution"}
             </Button>
           </DialogFooter>

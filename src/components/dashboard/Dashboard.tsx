@@ -18,9 +18,11 @@ import { AddFestivalModal } from "./AddFestivalModal";
 import { useState } from "react";
 import { useFestivalStore } from "@/store/useFestivalStore";
 import { FestivalDropdown } from "./FestivalDropdown";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Dashboard = () => {
   const { addFestival, currentFestival, festivalStats } = useFestivalStore();
+  const { isAdmin } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<null | {
     name: string;
@@ -206,16 +208,19 @@ const Dashboard = () => {
         <Card variant="outlined">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <div className="space-y-3">
-            <Button
-              onClick={() => {
-                setEditData(null);
-                setShowModal(true);
-              }}
-              className="w-full rounded-2xl h-12"
-            >
-              <Sparkles className="w-5 h-5" />
-              Create New Festival
-            </Button>
+            {isAdmin && (
+              <Button
+                onClick={() => {
+                  setEditData(null);
+                  setShowModal(true);
+                }}
+                className="w-full rounded-2xl h-12"
+              >
+                <Sparkles className="w-5 h-5" />
+                Create New Festival
+              </Button>
+            )}
+
             <Button className="w-full rounded-2xl h-12 bg-green-600 hover:bg-green-600/90">
               <Download className="w-5 h-5" />
               Export Summary PDF
@@ -227,13 +232,14 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
-
-      <AddFestivalModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleAddFestival}
-        initialData={editData ?? undefined}
-      />
+      {isAdmin && (
+        <AddFestivalModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleAddFestival}
+          initialData={editData ?? undefined}
+        />
+      )}
     </div>
   );
 };

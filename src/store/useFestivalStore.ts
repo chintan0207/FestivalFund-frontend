@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import type { Festival, FestivalReport, FestivalStats } from "@/types/types";
 import axiosInstance from "@/lib/axios";
@@ -78,9 +79,9 @@ export const useFestivalStore = create<FestivalState>()(
             toast.error(data?.message);
           }
           return data.success;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching festivals:", error);
-          toast.error("Failed to load festivals.");
+          toast.error(error.response.data.message);
         } finally {
           set({ isLoading: false });
         }
@@ -99,9 +100,9 @@ export const useFestivalStore = create<FestivalState>()(
             toast.error(data?.message);
           }
           return data?.success;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error adding festival:", error);
-          toast.error("Failed to add festival.");
+          toast.error(error.response.data.message);
         } finally {
           set({ isbtnLoading: false });
         }
@@ -125,9 +126,9 @@ export const useFestivalStore = create<FestivalState>()(
             toast.error(data?.message);
           }
           return data?.success;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error updating festival:", error);
-          toast.error("Failed to update festival.");
+          toast.error(error.response.data.message);
         } finally {
           set({ isbtnLoading: false });
         }
@@ -148,9 +149,9 @@ export const useFestivalStore = create<FestivalState>()(
             toast.error(data?.message);
           }
           return data?.success;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error deleting festival:", error);
-          toast.error("Failed to delete festival.");
+          toast.error(error.response.data.message);
         } finally {
           set({ isbtnLoading: false });
         }
@@ -168,9 +169,9 @@ export const useFestivalStore = create<FestivalState>()(
             toast.error(data?.message);
           }
           return data?.success;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching festivals:", error);
-          toast.error("Failed to load festivals.");
+          toast.error(error.response.data.message);
         } finally {
           set({ isStatsLoading: false });
         }
@@ -186,9 +187,9 @@ export const useFestivalStore = create<FestivalState>()(
             toast.error(data?.message);
           }
           return data?.success;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching festival report:", error);
-          toast.error("Failed to load festival report.");
+          toast.error(error.response.data.message);
         } finally {
           set({ isStatsLoading: false });
         }
