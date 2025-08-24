@@ -18,6 +18,7 @@ export interface FestivalStats {
   pendingAmount: number;
   totalExpenses: number;
   currentBalance: number;
+  categoryTotals: Record<string, number>;
 }
 
 export interface Festival {

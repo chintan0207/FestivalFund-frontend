@@ -45,6 +45,7 @@ export const useFestivalStore = create<FestivalState>()(
         pendingAmount: 0,
         totalExpenses: 0,
         currentBalance: 0,
+        categoryTotals: {},
       },
       FestivalReport: {
         festival: {} as Festival,

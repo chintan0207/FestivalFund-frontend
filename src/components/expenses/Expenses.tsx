@@ -6,14 +6,11 @@ import {
   Volume2,
   Package,
   Plus,
-  // Tag,
   Building2,
-  // Calculator,
   Search,
   Filter,
   Receipt,
   Edit,
-  Trash2,
   ChevronDown,
   Calculator,
 } from "lucide-react";
@@ -36,48 +33,53 @@ import {
 import { Pagination } from "../ui/Pagination";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DeleteExpenseDialog } from "./DeleteExpenseDialog";
+import { useFestivalStore } from "@/store/useFestivalStore";
 
 const Expenses = () => {
+  const { getFestivalStats, currentFestival, festivalStats } =
+    useFestivalStore();
+
   const summaryCards = [
     {
       title: "Mahaprasad",
-      value: 8000,
       icon: Utensils,
       color: "from-blue-500 to-blue-600",
       subtitle: "Food & Prasad expenses",
     },
     {
       title: "Decoration",
-      value: 15000,
       icon: Sparkles,
       color: "from-green-500 to-emerald-600",
       subtitle: "Stage & Lighting",
     },
     {
       title: "Mandap",
-      value: 10000,
       icon: Building2,
       color: "from-orange-500 to-amber-600",
       subtitle: "Stage & Mandap setup",
     },
-
     {
-      title: "Sound System",
-      value: 12000,
+      title: "Sound",
       icon: Volume2,
       color: "from-red-500 to-pink-600",
       subtitle: "Audio arrangements",
     },
     {
       title: "Other",
-      value: 0.0,
       icon: Package,
       color: "from-purple-500 to-purple-600",
       subtitle: "Miscellaneous",
     },
+  ];
+
+  const expenseCards = [
+    ...summaryCards.map((card) => ({
+      ...card,
+      value: festivalStats?.categoryTotals?.[card.title] || 0,
+    })),
     {
       title: "Total",
-      value: 35000.0,
+      value: festivalStats?.totalExpenses || 0,
       icon: Calculator,
       color: "from-gray-500 to-gray-700",
       subtitle: "Overall Expenses",
@@ -114,6 +116,10 @@ const Expenses = () => {
     setSearchFilter({ ...searchFilter, category: cat });
     setQueryData({ ...queryData, page: 1 });
   };
+
+  useEffect(() => {
+    getFestivalStats(currentFestival?._id);
+  }, []);
 
   // Fetch expenses on changes
   useEffect(() => {
@@ -200,9 +206,7 @@ const Expenses = () => {
     }
   };
 
-  console.log("editData", editData);
   const handleEditExpense = (expense: Expense) => {
-    console.log("Edit expense:", expense);
     setShowModal(true);
     setEditData(expense);
   };
@@ -257,6 +261,40 @@ const Expenses = () => {
           <Plus className="h-4 w-4" />
           Add Expense
         </Button>
+      </div>
+
+      <div className="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+        {expenseCards.map((card, index) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between px-4 py-3 sm:px-6"
+            >
+              {/* Left side */}
+              <div className="flex items-center space-x-3">
+                <div
+                  className={`w-8 h-8 rounded-lg bg-gradient-to-r ${card.color} flex items-center justify-center`}
+                >
+                  <Icon className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {card.title}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {card.subtitle}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right side */}
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                {formatCurrency(card.value)}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Search + Filters */}
