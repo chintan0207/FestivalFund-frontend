@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,11 +9,23 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "../ui/textarea";
+import { useFestivalStore } from "@/store/useFestivalStore";
+import {
+  Utensils,
+  Sparkles,
+  Building2,
+  Volume2,
+  Package,
+  Loader2Icon,
+} from "lucide-react";
+import { useExpenseStore } from "@/store/useExpenseStore";
 
 type AddExpenseModalProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  initialData?: any;
 };
 
 const categories = ["Mahaprasad", "Decoration", "Mandap", "Sound", "Other"];
@@ -22,16 +34,48 @@ export default function AddExpenseModal({
   open,
   onClose,
   onSubmit,
+  initialData,
 }: AddExpenseModalProps) {
+  const { currentFestival } = useFestivalStore();
+  const { isbtnLoading } = useExpenseStore();
+
   const [form, setForm] = useState({
+    festivalId: currentFestival?._id ?? "",
     category: "",
-    amount: "",
+    amount: 0,
     description: "",
     date: new Date().toISOString().split("T")[0],
   });
 
-  const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        festivalId: initialData.festivalId ?? currentFestival?._id ?? "",
+        category: initialData.category ?? "",
+        amount: Number(initialData.amount),
+        description: initialData.description ?? "",
+        date: initialData.date
+          ? new Date(initialData.date).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+      });
+    } else {
+      // Reset form when modal is opened without data
+      setForm({
+        festivalId: currentFestival?._id ?? "",
+        category: "",
+        amount: 0,
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+      });
+    }
+  }, [initialData, currentFestival, open]);
+
+  const handleChange = (field: string, value: string | number) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]:
+        field === "amount" ? (value === "" ? undefined : Number(value)) : value,
+    }));
   };
 
   const handleSave = () => {
@@ -44,7 +88,9 @@ export default function AddExpenseModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add New Expense</DialogTitle>
+          <DialogTitle>
+            {initialData ? "Edit Expense" : "Add New Expense"}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Category Selection */}
@@ -80,7 +126,7 @@ export default function AddExpenseModal({
           <label className="text-sm font-medium">Amount (₹)</label>
           <Input
             type="number"
-            value={form.amount}
+            value={form.amount ?? ""}
             placeholder="Enter amount"
             onChange={(e) => handleChange("amount", e.target.value)}
           />
@@ -89,7 +135,7 @@ export default function AddExpenseModal({
         {/* Description */}
         <div className="grid gap-2">
           <label className="text-sm font-medium">Description</label>
-          <textarea
+          <Textarea
             value={form.description}
             placeholder="Enter expense description"
             onChange={(e) => handleChange("description", e.target.value)}
@@ -117,8 +163,10 @@ export default function AddExpenseModal({
           <Button
             onClick={handleSave}
             className="rounded-lg px-6 bg-gradient-to-r from-pink-500 to-orange-400"
+            disabled={isbtnLoading}
           >
-            Add Expense
+            {isbtnLoading && <Loader2Icon className="animate-spin w-4 h-4" />}
+            {initialData ? "Save Changes" : "Add Expense"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -126,9 +174,7 @@ export default function AddExpenseModal({
   );
 }
 
-// Your existing helpers
-import { Utensils, Sparkles, Building2, Volume2, Package } from "lucide-react";
-
+// 🔹 Helpers
 const getCategoryIcon = (category: string) => {
   switch (category) {
     case "Mahaprasad":
