@@ -115,9 +115,9 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
+      logout: async () => {
         try {
-          axiosInstance.post("/auth/logout");
+          await axiosInstance.post("/auth/logout");
           set({
             tokens: { accessToken: null, refreshToken: null },
             isAuthenticated: false,
