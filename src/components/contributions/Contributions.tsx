@@ -273,7 +273,6 @@ const Contributions = () => {
     const success: boolean = await getContributionSlip(id);
     if (!success) return;
 
-    // get slipUrl from store after API success
     const slipUrl = useContributionStore.getState().slipUrl;
     const fileName = `Contribution_Slip_${id}.pdf`;
 
@@ -282,27 +281,15 @@ const Contributions = () => {
       return;
     }
 
-    try {
-      const response = await fetch(slipUrl);
-      if (!response.ok) throw new Error("Failed to download slip");
+    // Direct download without fetching
+    const link = document.createElement("a");
+    link.href = slipUrl;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download error:", error);
-      alert("Failed to download slip. Please try again.");
-    } finally {
-      setLoadingSlipId(null);
-    }
+    setLoadingSlipId(null);
   };
 
   return (
@@ -602,17 +589,18 @@ const Contributions = () => {
                       </div>
 
                       {isAdmin && (
-                        <div className="flex sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+                          {/* Status Select */}
                           <Select
                             value={c.status}
                             onValueChange={(value) =>
                               handleStatusChange(c._id, value, c)
                             }
                           >
-                            <SelectTrigger className="sm:w-[180px] w-full border border-gray-200 rounded-lg text-sm">
+                            <SelectTrigger className="w-full sm:w-[180px] border border-gray-200 rounded-lg text-sm">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
-                            <SelectContent className="w-full">
+                            <SelectContent className="w-full sm:w-[180px]">
                               {Object.values(ContributionStatusEnum).map(
                                 (status) => (
                                   <SelectItem key={status} value={status}>
@@ -624,12 +612,14 @@ const Contributions = () => {
                             </SelectContent>
                           </Select>
 
-                          <div className="flex justify-end gap-2">
+                          {/* Actions */}
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto justify-end">
                             {c.status === ContributionStatusEnum.DEPOSITED && (
                               <Button
                                 variant="outline"
                                 onClick={() => handleGenerateReceipt(c._id)}
-                                disabled={loadingSlipId === c._id} // optional: disable while loading
+                                disabled={loadingSlipId === c._id}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2"
                               >
                                 {loadingSlipId === c._id ? (
                                   <Loader2Icon className="animate-spin w-4 h-4" />
@@ -640,14 +630,18 @@ const Contributions = () => {
                               </Button>
                             )}
 
-                            <button
-                              onClick={() => handleEditContribution(c)}
-                              className="p-2 hover:bg-blue-50 rounded-full transition-colors"
-                            >
-                              <Edit className="w-5 h-5 text-blue-500" />
-                            </button>
+                            <div>
+                              <button
+                                onClick={() => handleEditContribution(c)}
+                                className="p-2 hover:bg-blue-50 rounded-full transition-colors self-start sm:self-auto"
+                              >
+                                <Edit className="w-5 h-5 text-blue-500" />
+                              </button>
 
-                            <DeleteContributionDialog contributionId={c._id} />
+                              <DeleteContributionDialog
+                                contributionId={c._id}
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
