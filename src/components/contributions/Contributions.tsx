@@ -4,9 +4,11 @@ import {
   CheckCircle,
   ChevronDown,
   Clock,
+  Download,
   Edit,
   // Download,
   Filter,
+  Loader2Icon,
   Plus,
   Receipt,
   Search,
@@ -57,6 +59,7 @@ const Contributions = () => {
     isLoading,
     updateContribution,
     addContribution,
+    getContributionSlip,
     queryData,
     searchFilter,
     setSearchFilter,
@@ -77,6 +80,8 @@ const Contributions = () => {
   const [searchValue, setSearchValue] = useState(searchFilter?.search ?? "");
   const [status, setStatus] = useState(searchFilter?.status ?? "All");
   const [category, setCategory] = useState(searchFilter?.category ?? "All");
+
+  const [loadingSlipId, setLoadingSlipId] = useState<string | null>(null);
 
   const changeStatus = (status: string) => {
     setStatus(status);
@@ -261,6 +266,44 @@ const Contributions = () => {
 
   const page = queryData.page ?? 1;
   const limit = queryData.limit ?? 10;
+
+  const handleGenerateReceipt = async (id: string) => {
+    setLoadingSlipId(id);
+
+    const success: boolean = await getContributionSlip(id);
+    if (!success) return;
+
+    // get slipUrl from store after API success
+    const slipUrl = useContributionStore.getState().slipUrl;
+    const fileName = `Contribution_Slip_${id}.pdf`;
+
+    if (!slipUrl) {
+      alert("No slip available.");
+      return;
+    }
+
+    try {
+      const response = await fetch(slipUrl);
+      if (!response.ok) throw new Error("Failed to download slip");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Failed to download slip. Please try again.");
+    } finally {
+      setLoadingSlipId(null);
+    }
+  };
 
   return (
     <>
@@ -582,12 +625,28 @@ const Contributions = () => {
                           </Select>
 
                           <div className="flex justify-end gap-2">
+                            {c.status === ContributionStatusEnum.DEPOSITED && (
+                              <Button
+                                variant="outline"
+                                onClick={() => handleGenerateReceipt(c._id)}
+                                disabled={loadingSlipId === c._id} // optional: disable while loading
+                              >
+                                {loadingSlipId === c._id ? (
+                                  <Loader2Icon className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <Download className="w-4 h-4" />
+                                )}
+                                Generate Receipt
+                              </Button>
+                            )}
+
                             <button
                               onClick={() => handleEditContribution(c)}
                               className="p-2 hover:bg-blue-50 rounded-full transition-colors"
                             >
                               <Edit className="w-5 h-5 text-blue-500" />
                             </button>
+
                             <DeleteContributionDialog contributionId={c._id} />
                           </div>
                         </div>

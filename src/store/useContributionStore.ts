@@ -20,8 +20,10 @@ interface QueryData {
 interface ContributionState {
   contribution: contribution | null;
   contributions: contribution[];
+  slipUrl: string;
   isLoading: boolean;
   isbtnLoading: boolean;
+  isSlipLoading: boolean;
 
   searchFilter: SearchFilter;
   setSearchFilter: (searchFilter: SearchFilter) => void;
@@ -46,14 +48,16 @@ interface ContributionState {
     data: Partial<contribution>
   ) => Promise<boolean>;
   deleteContribution: (id: string | undefined | null) => Promise<boolean>;
-  getContributionSlip: (id: string) => Promise<void>;
+  getContributionSlip: (id: string) => Promise<boolean>;
 }
 
 export const useContributionStore = create<ContributionState>()((set, get) => ({
   contribution: null,
   contributions: [],
+  slipUrl: "",
   isLoading: false,
   isbtnLoading: false,
+  isSlipLoading: false,
 
   searchFilter: {
     search: "",
@@ -239,22 +243,21 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
   },
 
   getContributionSlip: async (id: string) => {
-    set({ isLoading: true });
+    set({ isSlipLoading: true });
     try {
       const { data } = await axiosInstance.get(`/contributions/${id}/slip`);
 
       if (data.success) {
-        set({ contribution: data?.data?.slip, isLoading: false });
+        set({ slipUrl: data?.data?.slipUrl, isLoading: false });
       } else {
         toast.error(data?.message);
       }
-
       return data?.success;
     } catch (error: any) {
       console.error("Error getting contribution slip:", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to generate slip");
     } finally {
-      set({ isLoading: false });
+      set({ isSlipLoading: false });
     }
   },
 }));
