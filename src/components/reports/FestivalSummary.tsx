@@ -17,9 +17,17 @@ import {
 import { Card } from "../ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { useEffect } from "react";
 
 const FestivalSummary = () => {
-  const { festivalStats, currentFestival } = useFestivalStore();
+  const { festivalStats, currentFestival, getFestivalStats } =
+    useFestivalStore();
+
+  useEffect(() => {
+    if (currentFestival) {
+      getFestivalStats(currentFestival?._id);
+    }
+  }, [currentFestival]);
 
   // Financial Summary Cards
   const financialCards = [

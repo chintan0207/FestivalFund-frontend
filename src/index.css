@@ -41,6 +41,36 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@media print {
+  .text-gray-700 {
+    color: #374151 !important;
+  }
+  .bg-gray-50 {
+    background-color: #f9fafb !important;
+  }
+  .bg-gray-100 {
+    background-color: #f3f4f6 !important;
+  }
+  .bg-green-100 {
+    background-color: #dcfce7 !important;
+  }
+  .text-green-700 {
+    color: #065f46 !important;
+  }
+  .bg-yellow-100 {
+    background-color: #fef3c7 !important;
+  }
+  .text-yellow-700 {
+    color: #78350f !important;
+  }
+  .bg-red-100 {
+    background-color: #fee2e2 !important;
+  }
+  .text-red-700 {
+    color: #991b1b !important;
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
