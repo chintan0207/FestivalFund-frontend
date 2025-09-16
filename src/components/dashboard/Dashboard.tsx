@@ -5,6 +5,7 @@ import {
   DollarSign,
   Download,
   Eye,
+  IndianRupee,
   Receipt,
   Sparkles,
   TrendingDown,
@@ -50,7 +51,7 @@ const Dashboard = () => {
     {
       title: "Opening Balance",
       value: festivalStats?.openingBalance ?? 0,
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "from-blue-500 to-blue-600",
       subtitle: "Initial funds",
     },

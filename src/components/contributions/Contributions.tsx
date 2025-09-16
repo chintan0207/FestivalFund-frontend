@@ -25,7 +25,7 @@ import {
   contributionStatuses,
   contributorCategories,
 } from "@/lib/constants";
-import { createQueryParams, formatCurrency } from "@/lib/utils";
+import { capitalize, createQueryParams, formatCurrency } from "@/lib/utils";
 import { useFestivalStore } from "@/store/useFestivalStore";
 import { AddContributionModal } from "./AddContributionModal";
 import { useContributionStore } from "@/store/useContributionStore";
@@ -521,7 +521,7 @@ const Contributions = () => {
                             : "bg-red-100 text-red-700"
                         } text-xs px-2 py-0.5 rounded-full whitespace-nowrap`}
                       >
-                        {c.status}
+                        {capitalize(c.status)}
                       </span>
                     </div>
                   </Card>
@@ -559,13 +559,13 @@ const Contributions = () => {
                         <span
                           className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
                             c.status === ContributionStatusEnum.DEPOSITED
-                              ? "bg-green-100 text-green-700"
+                              ? "bg-green-100 text-green-700 font-semibold"
                               : c.status === ContributionStatusEnum.PENDING
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-yellow-100 text-yellow-700 font-semibold"
+                              : "bg-red-100 text-red-700 font-semibold"
                           }`}
                         >
-                          {c.status}
+                          {capitalize(c.status)}
                         </span>
                       </div>
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -11,6 +12,19 @@ export const formatCurrency = (amount: number) => {
     style: "currency",
     currency: "INR",
   }).format(amount);
+};
+
+export const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+export const capitalize = (str?: string): string => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
 export const createQueryParams = (data: any) => {
