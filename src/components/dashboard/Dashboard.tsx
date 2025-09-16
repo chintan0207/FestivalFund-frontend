@@ -2,7 +2,6 @@
 import {
   Activity,
   Clock,
-  DollarSign,
   Download,
   Eye,
   IndianRupee,
