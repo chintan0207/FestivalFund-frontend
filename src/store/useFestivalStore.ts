@@ -11,10 +11,12 @@ export interface FestivalState {
   festivals: Festival[];
   festivalStats: FestivalStats;
   FestivalReport: FestivalReport;
+  pdfUrl: string;
 
   isLoading: boolean;
   isbtnLoading: boolean;
   isStatsLoading: boolean;
+  isPdfLoading: boolean;
 
   fetchFestivals: () => Promise<void>;
   addFestival: (data: {
@@ -26,7 +28,7 @@ export interface FestivalState {
   updateFestival: (id: string, data: Partial<Festival>) => Promise<boolean>;
   deleteFestival: (id: string) => Promise<boolean>;
   getFestivalStats: (id: string | undefined) => Promise<void>;
-  getFestivalReport: (id: string) => Promise<void>;
+  getFestivalReport: (id: string) => Promise<boolean>;
 }
 
 export const useFestivalStore = create<FestivalState>()(
@@ -57,10 +59,12 @@ export const useFestivalStore = create<FestivalState>()(
         contributionCount: 0,
         expenseCount: 0,
       },
+      pdfUrl: "",
 
       isLoading: false,
       isbtnLoading: false,
       isStatsLoading: false,
+      isPdfLoading: false,
 
       fetchFestivals: async () => {
         set({ isLoading: true });
@@ -178,21 +182,26 @@ export const useFestivalStore = create<FestivalState>()(
         }
       },
 
-      getFestivalReport: async (id) => {
-        set({ isStatsLoading: true });
+      getFestivalReport: async (festivalId) => {
+        set({ isPdfLoading: true });
         try {
-          const { data } = await axiosInstance.get(`/reports/festival/${id}`);
+          const { data } = await axiosInstance.get(
+            `/reports/festival/${festivalId}`
+          );
+
           if (data?.success) {
-            set({ FestivalReport: data?.data, isStatsLoading: false });
+            set({ pdfUrl: data?.data?.url });
           } else {
             toast.error(data?.message);
           }
           return data?.success;
         } catch (error: any) {
-          console.error("Error fetching festival report:", error);
-          toast.error(error.response.data.message);
+          console.error("Error getting contributions PDF:", error);
+          toast.error(
+            error.response?.data?.message || "Failed to generate report"
+          );
         } finally {
-          set({ isStatsLoading: false });
+          set({ isPdfLoading: false });
         }
       },
     }),

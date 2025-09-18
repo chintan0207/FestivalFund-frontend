@@ -19,7 +19,9 @@ interface QueryData {
 interface ExpenseState {
   expense: Expense | null;
   expenses: Expense[];
+  pdfUrl: string;
   isLoading: boolean;
+  isPdfLoading: boolean;
   isbtnLoading: boolean;
 
   searchFilter: SearchFilter;
@@ -42,12 +44,15 @@ interface ExpenseState {
   addExpense: (data: Expense) => Promise<boolean>;
   updateExpense: (id: string, data: Partial<Expense>) => Promise<boolean>;
   deleteExpense: (id: string | null | undefined) => Promise<boolean>;
+  getExpensesPdf: (festivalId: string) => Promise<boolean>;
 }
 
 export const useExpenseStore = create<ExpenseState>((set, get) => ({
   expense: null,
   expenses: [],
+  pdfUrl: "",
   isLoading: false,
+  isPdfLoading: false,
   isbtnLoading: false,
 
   searchFilter: {
@@ -196,6 +201,25 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       toast.error(error.response?.data?.message || "Failed to delete expense");
     } finally {
       set({ isbtnLoading: false });
+    }
+  },
+
+  getExpensesPdf: async (festivalId) => {
+    set({ isPdfLoading: true });
+    try {
+      const { data } = await axiosInstance.get(`/expenses/pdf/${festivalId}`);
+
+      if (data.success) {
+        set({ pdfUrl: data?.data?.url });
+      } else {
+        toast.error(data?.message);
+      }
+      return data?.success;
+    } catch (error: any) {
+      console.error("Error getting contributions PDF:", error);
+      toast.error(error.response?.data?.message || "Failed to generate report");
+    } finally {
+      set({ isPdfLoading: false });
     }
   },
 }));

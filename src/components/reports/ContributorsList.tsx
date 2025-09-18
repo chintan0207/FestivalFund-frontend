@@ -1,15 +1,21 @@
-import { Download, Users } from "lucide-react";
+import { Download, Loader2Icon, Users } from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { useEffect } from "react";
 import { useFestivalStore } from "@/store/useFestivalStore";
-import { useContributorStore } from "@/store/useContributorStore"; // similar to useContributionStore
+import { useContributorStore } from "@/store/useContributorStore";
 import { EmptyStateRow } from "./EmptyStateRow";
 import TableSkeleton from "./TableSkeleton";
-// import { formatDate } from "@/lib/utils";
+import { downloadFile } from "@/lib/utils";
 
 const ContributorsList = () => {
-  const { contributors, fetchContributors, isLoading } = useContributorStore();
+  const {
+    contributors,
+    fetchContributors,
+    isLoading,
+    isPdfLoading,
+    allContributorsPdf,
+  } = useContributorStore();
   const currentFestival = useFestivalStore((state) => state.currentFestival);
 
   useEffect(() => {
@@ -21,6 +27,25 @@ const ContributorsList = () => {
     }
   }, [fetchContributors, currentFestival]);
 
+  const handleExportPDF = async () => {
+    if (!currentFestival?._id) return;
+
+    try {
+      const success = await allContributorsPdf();
+      if (!success) {
+        alert("Failed to generate PDF report.");
+        return;
+      }
+
+      const pdfUrl = useContributorStore.getState().pdfUrl;
+      const fileName = `All_Contributors.pdf`;
+
+      downloadFile(pdfUrl, fileName);
+    } catch (err) {
+      console.error("Error exporting PDF", err);
+    }
+  };
+
   return (
     <Card className="rounded-2xl">
       <div className="flex items-center justify-between">
@@ -28,8 +53,16 @@ const ContributorsList = () => {
           <Users className="w-6 h-6 text-green-600" />
           <span>Detailed Contributors Report</span>
         </h2>
-        <Button className="rounded-4xl p-5 bg-gradient-to-r from-green-500 to-emerald-600">
-          <Download className="h-4 w-4" />
+        <Button
+          disabled={isPdfLoading}
+          onClick={handleExportPDF}
+          className="rounded-4xl p-5 bg-gradient-to-r from-green-500 to-emerald-500 "
+        >
+          {isPdfLoading ? (
+            <Loader2Icon className="animate-spin w-4 h-4" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
           Export
         </Button>
       </div>

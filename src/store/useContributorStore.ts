@@ -18,7 +18,9 @@ interface QueryData {
 interface ContributorState {
   contributor: Contributor | null;
   contributors: Contributor[];
+  pdfUrl: string;
   isLoading: boolean;
+  isPdfLoading: boolean;
   isbtnLoading: boolean;
 
   searchFilter: SearchFilter;
@@ -44,12 +46,15 @@ interface ContributorState {
     data: Partial<Contributor>
   ) => Promise<boolean>;
   deleteContributor: (id: string | undefined | null) => Promise<boolean>;
+  allContributorsPdf: () => Promise<boolean>;
 }
 
 export const useContributorStore = create<ContributorState>((set, get) => ({
   contributor: null,
   contributors: [],
+  pdfUrl: "",
   isLoading: false,
+  isPdfLoading: false,
   isbtnLoading: false,
 
   searchFilter: {
@@ -194,6 +199,25 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
+    }
+  },
+
+  allContributorsPdf: async () => {
+    set({ isPdfLoading: true });
+    try {
+      const { data } = await axiosInstance.get(`/contributors/all/pdf`);
+
+      if (data?.success) {
+        set({ pdfUrl: data?.data?.url });
+      } else {
+        toast.error(data?.message);
+      }
+      return data?.success;
+    } catch (error: any) {
+      console.error("Error getting contributors PDF:", error);
+      toast.error(error.response?.data?.message || "Failed to generate report");
+    } finally {
+      set({ isPdfLoading: false });
     }
   },
 }));

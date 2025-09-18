@@ -12,11 +12,9 @@ import {
   Sparkles,
   Utensils,
   Volume2,
-  Download,
 } from "lucide-react";
 import { Card } from "../ui/card";
 import { formatCurrency } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { useEffect } from "react";
 
 const FestivalSummary = () => {
@@ -124,11 +122,6 @@ const FestivalSummary = () => {
             <Wallet className="w-6 h-6 text-blue-600" />
             <span>Festival Summary</span>
           </h2>
-
-          <Button className="rounded-4xl p-5 bg-gradient-to-r from-blue-500 to-blue-600">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
         </div>
 
         {/* Festival Info */}

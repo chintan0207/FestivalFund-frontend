@@ -1,6 +1,7 @@
 import {
   Download,
   FileText,
+  Loader2Icon,
   TrendingDown,
   TrendingUp,
   Users,
@@ -12,8 +13,12 @@ import ContributionsList from "./ContributionsList";
 import ExpenseList from "./ExpenseList";
 import ContributorsList from "./ContributorsList";
 import FestivalSummary from "./FestivalSummary";
+import { useFestivalStore } from "@/store/useFestivalStore";
+import { downloadFile } from "@/lib/utils";
 
 const Reports = () => {
+  const { currentFestival, getFestivalReport, isPdfLoading } =
+    useFestivalStore();
   const [reportType, setReportType] = useState("summary");
 
   const reportTypes = [
@@ -43,6 +48,24 @@ const Reports = () => {
     },
   ];
 
+  const handleExportPDF = async () => {
+    if (!currentFestival?._id) return;
+
+    try {
+      const success: boolean = await getFestivalReport(currentFestival._id);
+      if (!success) {
+        alert("Failed to generate PDF report.");
+        return;
+      }
+      const pdfUrl = useFestivalStore.getState().pdfUrl;
+      const fileName = `Festival_Report_${currentFestival.name}_${currentFestival.year}.pdf`;
+
+      downloadFile(pdfUrl, fileName);
+    } catch (err) {
+      console.error("Error exporting PDF", err);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-20">
       {/* Header */}
@@ -53,8 +76,16 @@ const Reports = () => {
             Comprehensive festival financial reports with export functionality
           </p>
         </div>
-        <Button className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-orange-500 to-amber-500 ">
-          <Download className="h-4 w-4" />
+        <Button
+          onClick={handleExportPDF}
+          disabled={isPdfLoading}
+          className="w-full sm:w-auto rounded-4xl p-5 bg-gradient-to-r from-orange-500 to-amber-500 "
+        >
+          {isPdfLoading ? (
+            <Loader2Icon className="animate-spin w-4 h-4" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
           Export Complete Report
         </Button>
       </div>

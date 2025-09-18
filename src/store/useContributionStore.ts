@@ -21,9 +21,11 @@ interface ContributionState {
   contribution: contribution | null;
   contributions: contribution[];
   slipUrl: string;
+  pdfUrl: string;
   isLoading: boolean;
   isbtnLoading: boolean;
   isSlipLoading: boolean;
+  isPdfLoading: boolean;
 
   searchFilter: SearchFilter;
   setSearchFilter: (searchFilter: SearchFilter) => void;
@@ -49,15 +51,18 @@ interface ContributionState {
   ) => Promise<boolean>;
   deleteContribution: (id: string | undefined | null) => Promise<boolean>;
   getContributionSlip: (id: string) => Promise<boolean>;
+  getContributionPdf: (festivalId: string) => Promise<boolean>;
 }
 
 export const useContributionStore = create<ContributionState>()((set, get) => ({
   contribution: null,
   contributions: [],
   slipUrl: "",
+  pdfUrl: "",
   isLoading: false,
   isbtnLoading: false,
   isSlipLoading: false,
+  isPdfLoading: false,
 
   searchFilter: {
     search: "",
@@ -129,7 +134,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error fetching contributions:", error);
-      toast.error(error.response.data.message);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch contributions"
+      );
     } finally {
       set({ isLoading: false });
     }
@@ -150,7 +157,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error fetching contribution:", error);
-      toast.error(error.response.data.message);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch contribution"
+      );
     } finally {
       set({ isLoading: false });
     }
@@ -177,11 +186,14 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error adding contribution:", error);
-      toast.error(error.response.data.message);
+      toast.error(
+        error.response?.data?.message || "Failed to add contribution"
+      );
     } finally {
       set({ isbtnLoading: false });
     }
   },
+
   updateContribution: async (id: string, contribution) => {
     set({ isbtnLoading: true });
     try {
@@ -207,7 +219,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error updating contribution:", error);
-      toast.error(error.response.data.message);
+      toast.error(
+        error.response?.data?.message || "Failed to update contribution"
+      );
     } finally {
       set({ isbtnLoading: false });
     }
@@ -236,7 +250,9 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error deleting contribution:", error);
-      toast.error(error.response.data.message);
+      toast.error(
+        error.response?.data?.message || "Failed to delete contribution"
+      );
     } finally {
       set({ isbtnLoading: false });
     }
@@ -248,7 +264,7 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       const { data } = await axiosInstance.get(`/contributions/${id}/slip`);
 
       if (data.success) {
-        set({ slipUrl: data?.data?.slipUrl, isLoading: false });
+        set({ slipUrl: data?.data?.slipUrl });
       } else {
         toast.error(data?.message);
       }
@@ -260,4 +276,26 @@ export const useContributionStore = create<ContributionState>()((set, get) => ({
       set({ isSlipLoading: false });
     }
   },
+
+  getContributionPdf: async (festivalId: string) => {
+    set({ isPdfLoading: true });
+    try {
+      const { data } = await axiosInstance.get(
+        `/contributions/pdf/${festivalId}`
+      );
+
+      if (data.success) {
+        set({ pdfUrl: data?.data?.url });
+      } else {
+        toast.error(data?.message);
+      }
+      return data?.success;
+    } catch (error: any) {
+      console.error("Error getting contributions PDF:", error);
+      toast.error(error.response?.data?.message || "Failed to generate report");
+    } finally {
+      set({ isPdfLoading: false });
+    }
+  },
+  
 }));

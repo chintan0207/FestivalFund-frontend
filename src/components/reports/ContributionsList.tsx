@@ -1,8 +1,13 @@
-import { Download, TrendingUp } from "lucide-react";
+import { Download, Loader2Icon, TrendingUp } from "lucide-react";
 import { Card } from "../ui/card";
 import { useContributionStore } from "@/store/useContributionStore";
 import { useEffect } from "react";
-import { capitalize, formatCurrency, formatDate } from "@/lib/utils";
+import {
+  capitalize,
+  downloadFile,
+  formatCurrency,
+  formatDate,
+} from "@/lib/utils";
 import { ContributionStatusEnum } from "@/lib/constants";
 import { useFestivalStore } from "@/store/useFestivalStore";
 import { Button } from "../ui/button";
@@ -10,8 +15,13 @@ import TableSkeleton from "./TableSkeleton";
 import { EmptyStateRow } from "./EmptyStateRow";
 
 const ContributionsList = () => {
-  const { contributions, fetchContributions, isLoading } =
-    useContributionStore();
+  const {
+    contributions,
+    fetchContributions,
+    isLoading,
+    getContributionPdf,
+    isPdfLoading,
+  } = useContributionStore();
   const currentFestival = useFestivalStore((state) => state.currentFestival);
 
   useEffect(() => {
@@ -21,6 +31,25 @@ const ContributionsList = () => {
     });
   }, [fetchContributions]);
 
+  const handleExportPDF = async () => {
+    if (!currentFestival?._id) return;
+
+    try {
+      const success = await getContributionPdf(currentFestival._id);
+      if (!success) {
+        alert("Failed to generate PDF report.");
+        return;
+      }
+
+      const pdfUrl = useContributionStore.getState().pdfUrl;
+      const fileName = `Contributions_Report_${currentFestival.name}_${currentFestival.year}.pdf`;
+
+      downloadFile(pdfUrl, fileName);
+    } catch (err) {
+      console.error("Error exporting PDF", err);
+    }
+  };
+
   return (
     <>
       <Card className="rounded-2xl">
@@ -29,8 +58,16 @@ const ContributionsList = () => {
             <TrendingUp className="w-6 h-6 text-purple-600" />
             <span>Detailed Contributions Report</span>
           </h2>
-          <Button className="rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600">
-            <Download className="h-4 w-4" />
+          <Button
+            disabled={isPdfLoading}
+            onClick={handleExportPDF}
+            className="rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600"
+          >
+            {isPdfLoading ? (
+              <Loader2Icon className="animate-spin w-4 h-4" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
             Export
           </Button>
         </div>

@@ -39,3 +39,24 @@ export const createQueryParams = (data: any) => {
     .join("&");
   return params ? `?${params}` : "";
 };
+
+export const downloadFile = (fileUrl: string, fileName: string) => {
+  if (!fileUrl) {
+    alert("No file available.");
+    return false;
+  }
+
+  try {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return true;
+  } catch (err) {
+    console.error("File download failed:", err);
+    alert("Failed to download file.");
+    return false;
+  }
+};

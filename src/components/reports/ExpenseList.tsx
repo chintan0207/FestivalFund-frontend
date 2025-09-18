@@ -1,15 +1,16 @@
-import { Download, Wallet } from "lucide-react";
+import { Download, Loader2Icon, Wallet } from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { useEffect } from "react";
 import { useFestivalStore } from "@/store/useFestivalStore";
 import { useExpenseStore } from "@/store/useExpenseStore";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { downloadFile, formatCurrency, formatDate } from "@/lib/utils";
 import TableSkeleton from "./TableSkeleton";
 import { EmptyStateRow } from "./EmptyStateRow";
 
 const ExpenseList = () => {
-  const { expenses, fetchExpenses, isLoading } = useExpenseStore();
+  const { expenses, fetchExpenses, isLoading, isPdfLoading, getExpensesPdf } =
+    useExpenseStore();
   const currentFestival = useFestivalStore((state) => state.currentFestival);
 
   useEffect(() => {
@@ -21,6 +22,25 @@ const ExpenseList = () => {
     }
   }, [fetchExpenses, currentFestival]);
 
+  const handleExportPDF = async () => {
+    if (!currentFestival?._id) return;
+
+    try {
+      const success = await getExpensesPdf(currentFestival._id);
+      if (!success) {
+        alert("Failed to generate PDF report.");
+        return;
+      }
+
+      const pdfUrl = useExpenseStore.getState().pdfUrl;
+      const fileName = `Expense_Report_${currentFestival.name}_${currentFestival.year}.pdf`;
+
+      downloadFile(pdfUrl, fileName);
+    } catch (err) {
+      console.error("Error exporting PDF", err);
+    }
+  };
+
   return (
     <Card className="rounded-2xl">
       <div className="flex items-center justify-between">
@@ -28,8 +48,16 @@ const ExpenseList = () => {
           <Wallet className="w-6 h-6 text-red-600" />
           <span>Detailed Expenses Report</span>
         </h2>
-        <Button className="rounded-4xl p-5 bg-gradient-to-r from-red-500 to-pink-500">
-          <Download className="h-4 w-4" />
+        <Button
+          disabled={isPdfLoading}
+          onClick={handleExportPDF}
+          className="rounded-4xl p-5 bg-gradient-to-r from-purple-500 to-purple-600"
+        >
+          {isPdfLoading ? (
+            <Loader2Icon className="animate-spin w-4 h-4" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
           Export
         </Button>
       </div>
