@@ -85,10 +85,6 @@ const Contributors = () => {
   // Restore filters only on reload, reset on navigation back
   // We restore the filter/query state from URL, then call fetchContributors once.
   useEffect(() => {
-    const navEntries = performance.getEntriesByType("navigation");
-    const isReload =
-      navEntries.length > 0 &&
-      (navEntries[0] as PerformanceNavigationTiming).type === "reload";
 
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
