@@ -6,7 +6,6 @@ import {
   Clock,
   Download,
   Edit,
-  // Download,
   Filter,
   Loader2Icon,
   Plus,
@@ -70,24 +69,181 @@ const Contributions = () => {
   } = useContributionStore();
 
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<contribution | null>(null);
   const [viewMode, setViewMode] = useState<"detailed" | "minimal">("detailed");
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const [searchValue, setSearchValue] = useState(searchFilter?.search ?? "");
   const [status, setStatus] = useState(searchFilter?.status ?? "All");
   const [category, setCategory] = useState(searchFilter?.category ?? "All");
-
   const [loadingSlipId, setLoadingSlipId] = useState<string | null>(null);
+
+  const initialLoadRef = useRef(false); // ✅ Prevent double fetch
+
+  // --- Sync URL params on mount ---
+  useEffect(() => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const search = searchParams.get("search") || "";
+    const statusParam = searchParams.get("status") || "";
+    const categoryParam = searchParams.get("category") || "";
+
+    setSearchValue(search);
+    setStatus(statusParam);
+    setCategory(categoryParam);
+    setQueryData({ page, limit });
+    setSearchFilter({ search, status: statusParam, category: categoryParam });
+  }, []);
+
+  // --- Fetch festival stats once ---
+  const statsFetchedRef = useRef(false);
+  useEffect(() => {
+    if (currentFestival?._id && !statsFetchedRef.current) {
+      statsFetchedRef.current = true;
+      getFestivalStats(currentFestival._id);
+    }
+  }, [currentFestival?._id]);
+
+  // --- Fetch contributions whenever filters / pagination / sorting change ---
+  useEffect(() => {
+    if (!currentFestival?._id) return;
+
+    // Prevent fetch before URL params are loaded
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true;
+      return;
+    }
+
+    fetchContributions({ festivalId: currentFestival._id });
+
+    // Sync URL
+    const params: Record<string, string> = {};
+    if (queryData.page) params.page = queryData.page.toString();
+    if (queryData.limit) params.limit = queryData.limit.toString();
+    if (searchFilter.search) params.search = searchFilter.search;
+    if (searchFilter.status) params.status = searchFilter.status;
+    if (searchFilter.category) params.category = searchFilter.category;
+
+    if (sorting.sortField !== "createdAt") params.sortField = sorting.sortField;
+    if (sorting.sortOrder !== "desc") params.sortOrder = sorting.sortOrder;
+
+    const query = createQueryParams(params);
+    setSearchParams(query);
+    navigate(`/contributions${query}`);
+  }, [currentFestival?._id, searchFilter, queryData, sorting]);
+
+  // --- Cleanup search debounce ---
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, []);
+
+  // --- Handlers ---
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchFilter({ ...searchFilter, search: value });
+      setQueryData({ ...queryData, page: 1 });
+    }, 300);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setQueryData({ ...queryData, page: newPage });
+  };
 
   const changeStatus = (status: string) => {
     setStatus(status);
-    setSearchFilter({ ...searchFilter, status: status });
+    setSearchFilter({ ...searchFilter, status });
+    setQueryData({ ...queryData, page: 1 });
   };
 
+  const changeCategory = (category: string) => {
+    setCategory(category);
+    setSearchFilter({ ...searchFilter, category });
+    setQueryData({ ...queryData, page: 1 });
+  };
+
+  const changeSort = (field: string) => {
+    if (sorting.sortField === field) {
+      setSorting({
+        sortField: field,
+        sortOrder: sorting.sortOrder === "asc" ? "desc" : "asc",
+      });
+    } else {
+      setSorting({ sortField: field, sortOrder: "asc" });
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchValue("");
+    setCategory("");
+    setStatus("");
+    setSearchFilter({ search: "", status: "", category: "" });
+    setQueryData({ page: 1, limit: 10 });
+    setSorting({ sortField: "createdAt", sortOrder: "desc" });
+    setSearchParams({});
+    navigate("/contributions");
+  };
+
+  const handleSaveContribution = async (data: contribution) => {
+    const success = editData
+      ? await updateContribution(editData._id, data)
+      : await addContribution(data);
+
+    if (success) {
+      setShowModal(false);
+      setEditData(null);
+    }
+  };
+
+  const handleEditContribution = (c: contribution) => {
+    setEditData({
+      ...c,
+      _id: c._id,
+      itemName: c.itemName ?? "",
+      amount: c.amount ?? 0,
+      type: c.type,
+    });
+    setShowModal(true);
+  };
+
+  const handleStatusChange = async (
+    id: string,
+    newStatus: string,
+    currentData: contribution
+  ) => {
+    await updateContribution(id, {
+      ...currentData,
+      status: newStatus.toLowerCase(),
+    });
+    setQueryData({ ...queryData, page: 1 });
+  };
+
+  const handleGenerateReceipt = async (id: string) => {
+    setLoadingSlipId(id);
+    const success: boolean = await getContributionSlip(id);
+    if (!success) return;
+
+    const slipUrl = useContributionStore.getState().slipUrl;
+    const fileName = `Contribution_Slip_${id}.pdf`;
+    if (!slipUrl) return alert("No slip available.");
+
+    const link = document.createElement("a");
+    link.href = slipUrl;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setLoadingSlipId(null);
+  };
+
+  // --- Summary cards ---
   const summaryCards = [
     {
       title: "Deposited",
@@ -112,185 +268,8 @@ const Contributions = () => {
     },
   ];
 
-  useEffect(() => {
-    if (currentFestival?._id) {
-      getFestivalStats(currentFestival?._id);
-      fetchContributions({ festivalId: currentFestival?._id });
-    }
-  }, [currentFestival, searchFilter, queryData, sorting]);
-
-  useEffect(() => {
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, []);
-  useEffect(() => {
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const search = searchParams.get("search") || "";
-
-    const statusParam = searchParams.get("status") || "";
-    const status = statusParam;
-    const categoryParam = searchParams.get("category") || "";
-    const category = categoryParam;
-    setSearchValue(search);
-    setStatus(status);
-    setCategory(category);
-    setQueryData({ page, limit });
-    setSearchFilter({
-      search,
-      status,
-      category: category,
-    });
-    setQueryData({ ...queryData, page, limit });
-  }, []);
-
-  // Sync query to URL
-  useEffect(() => {
-    const params: Record<string, string> = {};
-
-    if (queryData.page) params.page = queryData.page.toString();
-    if (queryData.limit) params.limit = queryData.limit.toString();
-    if (searchFilter.search) params.search = searchFilter.search;
-
-    if (searchFilter.status) params.status = searchFilter.status;
-
-    if (sorting.sortField !== "createdAt") params.sortField = sorting.sortField;
-    if (sorting.sortOrder !== "desc") params.sortOrder = sorting.sortOrder;
-
-    const query = createQueryParams(params);
-
-    // Update URL: include query params only if there are active filters/sorting
-    if (Object.keys(params).length > 0) {
-      setSearchParams(query);
-      navigate(`/contributions${query}`);
-    } else {
-      setSearchParams({});
-      navigate(`/contributions`);
-    }
-  }, [queryData, searchFilter, sorting]);
-
-  const handlePageChange = (newPage: number) => {
-    setQueryData({ ...queryData, page: newPage });
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchValue(value);
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-
-    searchDebounceRef.current = setTimeout(() => {
-      setSearchFilter({
-        ...searchFilter,
-        search: value,
-      });
-      setQueryData({ ...queryData, page: 1 });
-    }, 300);
-  };
-
-  const changeSort = (field: string) => {
-    if (sorting.sortField === field) {
-      setSorting({
-        sortField: field,
-        sortOrder: sorting.sortOrder === "asc" ? "desc" : "asc",
-      });
-    } else {
-      setSorting({ sortField: field, sortOrder: "asc" });
-    }
-  };
-
-  const clearFilters = () => {
-    setSearchValue("");
-    setCategory("");
-    setStatus("");
-    setSearchFilter({
-      search: "",
-      status: "",
-      category: "",
-    });
-    setQueryData({
-      page: 1,
-      limit: 10,
-    });
-    setSorting({
-      sortField: "createdAt",
-      sortOrder: "desc",
-    });
-
-    setSearchParams({});
-    navigate("/contributions");
-  };
-
-  const handleSaveContribution = async (data: contribution) => {
-    const success = editData
-      ? await updateContribution(editData._id, data)
-      : await addContribution(data);
-
-    if (success) {
-      setShowModal(false);
-      setEditData(null);
-    }
-  };
-
-  const handleEditContribution = (c: contribution) => {
-    setEditData({
-      ...c,
-      _id: c._id,
-      itemName: c.itemName ?? "",
-      amount: c.amount ?? 0,
-      type: c.type,
-    });
-
-    setShowModal(true);
-  };
-
-  const handleStatusChange = async (
-    id: string,
-    newStatus: string,
-    currentData: contribution
-  ) => {
-    const normalizedStatus = newStatus.toLowerCase();
-
-    await updateContribution(id, {
-      ...currentData,
-      status: normalizedStatus,
-    });
-    setQueryData({ ...queryData, page: 1 });
-  };
-
-  const changeCategory = (category: string) => {
-    setCategory(category);
-    setSearchFilter({ ...searchFilter, category: category });
-    setQueryData({ ...queryData, page: 1 });
-  };
-
   const page = queryData.page ?? 1;
   const limit = queryData.limit ?? 10;
-
-  const handleGenerateReceipt = async (id: string) => {
-    setLoadingSlipId(id);
-
-    const success: boolean = await getContributionSlip(id);
-    if (!success) return;
-
-    const slipUrl = useContributionStore.getState().slipUrl;
-    const fileName = `Contribution_Slip_${id}.pdf`;
-
-    if (!slipUrl) {
-      alert("No slip available.");
-      return;
-    }
-
-    // Direct download without fetching
-    const link = document.createElement("a");
-    link.href = slipUrl;
-    link.setAttribute("download", fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setLoadingSlipId(null);
-  };
 
   return (
     <>

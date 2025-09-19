@@ -110,6 +110,9 @@ const Expenses = () => {
   const [searchValue, setSearchValue] = useState(searchFilter?.search ?? "");
   const [category, setCategory] = useState(searchFilter?.category ?? "All");
 
+  // guard to prevent double fetch
+  const initialLoadRef = useRef(false);
+
   // Category change
   const changeCategory = (cat: string) => {
     setCategory(cat);
@@ -121,8 +124,9 @@ const Expenses = () => {
     getFestivalStats(currentFestival?._id);
   }, []);
 
-  // Fetch expenses on changes
+  // Fetch expenses on changes (skip until after initial restore)
   useEffect(() => {
+    if (!initialLoadRef.current) return;
     fetchExpenses();
   }, [searchFilter, queryData, sorting]);
 
@@ -140,6 +144,8 @@ const Expenses = () => {
       navEntries.length > 0 &&
       (navEntries[0] as PerformanceNavigationTiming).type === "reload";
 
+    let timeout: NodeJS.Timeout;
+
     if (isReload) {
       const page = parseInt(searchParams.get("page") || "1", 10);
       const limit = parseInt(searchParams.get("limit") || "10", 10);
@@ -150,12 +156,26 @@ const Expenses = () => {
       setCategory(categoryParam);
       setSearchFilter({ search, category: categoryParam });
       setQueryData({ ...queryData, page, limit });
+
+      timeout = setTimeout(() => {
+        fetchExpenses();
+        initialLoadRef.current = true;
+      }, 0);
     } else {
       setSearchValue("");
       setCategory("");
       setSearchFilter({ search: "", category: "" });
       setQueryData({ page: 1, limit: 10 });
+
+      timeout = setTimeout(() => {
+        fetchExpenses();
+        initialLoadRef.current = true;
+      }, 0);
     }
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   // Sync query to URL

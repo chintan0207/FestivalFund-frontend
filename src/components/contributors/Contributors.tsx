@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -10,7 +9,6 @@ import {
   Plus,
   Search,
   User,
-  // Users,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -50,33 +48,6 @@ const Contributors = () => {
 
   const { isAdmin } = useAuthStore();
 
-  // const summaryCards = [
-  //   {
-  //     title: "Total",
-  //     value: numOfRecords,
-  //     icon: Users,
-  //     color: "from-blue-500 to-blue-600",
-  //   },
-  //   {
-  //     title: "Parents",
-  //     value: 2,
-  //     icon: User,
-  //     color: "from-green-500 to-emerald-600",
-  //   },
-  //   {
-  //     title: "Boys",
-  //     value: 2,
-  //     icon: User,
-  //     color: "from-red-500 to-pink-600",
-  //   },
-  //   {
-  //     title: "Girls",
-  //     value: 1,
-  //     icon: User,
-  //     color: "from-purple-500 to-purple-600",
-  //   },
-  // ];
-
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<any>(null);
@@ -92,8 +63,17 @@ const Contributors = () => {
     setQueryData({ ...queryData, page: 1 });
   };
 
+  // ------------------- NEW: guard for initial restore -------------------
+  // We skip the automatic fetchEffect until the restore-from-URL effect finishes.
+  const initialLoadRef = useRef(true);
+  const restoreTimerRef = useRef<number | null>(null);
+  // ---------------------------------------------------------------------
+
+  // Fetch contributors when filters/pagination/sorting change — but only after initial restore is done
   useEffect(() => {
+    if (initialLoadRef.current) return; // skip initial automatic fetch while restoring
     fetchContributors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFilter, queryData, sorting]);
 
   useEffect(() => {
@@ -103,37 +83,43 @@ const Contributors = () => {
   }, []);
 
   // Restore filters only on reload, reset on navigation back
+  // We restore the filter/query state from URL, then call fetchContributors once.
   useEffect(() => {
     const navEntries = performance.getEntriesByType("navigation");
     const isReload =
       navEntries.length > 0 &&
       (navEntries[0] as PerformanceNavigationTiming).type === "reload";
 
-    if (isReload) {
-      const page = parseInt(searchParams.get("page") || "1", 10);
-      const limit = parseInt(searchParams.get("limit") || "10", 10);
-      const search = searchParams.get("search") || "";
-      const categoryParam = searchParams.get("category") || "";
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const search = searchParams.get("search") || "";
+    const categoryParam = searchParams.get("category") || "";
 
-      setSearchValue(search);
-      setCategory(categoryParam);
-      setSearchFilter({
-        search,
-        category: categoryParam,
-      });
-      setQueryData({ ...queryData, page, limit });
-    } else {
-      setSearchValue("");
-      setCategory("");
-      setSearchFilter({
-        search: "",
-        category: "",
-      });
-      setQueryData({
-        page: 1,
-        limit: 10,
-      });
-    }
+    // apply restored UI values
+    setSearchValue(search);
+    setCategory(categoryParam);
+
+    // set store filters and pagination
+    setSearchFilter({
+      search,
+      category: categoryParam,
+    });
+
+    setQueryData({ page, limit });
+
+    // schedule a single fetch on the next tick so state updates above are applied
+    // then clear the `initialLoadRef` so future changes trigger fetch normally
+    restoreTimerRef.current = window.setTimeout(() => {
+      fetchContributors();
+      initialLoadRef.current = false;
+    }, 0);
+
+    return () => {
+      if (restoreTimerRef.current) {
+        clearTimeout(restoreTimerRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync query to URL
@@ -159,6 +145,7 @@ const Contributors = () => {
       setSearchParams({});
       navigate(`/contributors`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryData, searchFilter, sorting]);
 
   const handlePageChange = (newPage: number) => {
@@ -283,16 +270,13 @@ const Contributors = () => {
               )}
             </div>
             {contributors?.map((contributor, index) => (
-              <>
+              <div key={contributor?._id ?? index}>
                 {isLoading ? (
                   <Card className="p-0 border-0">
                     <Skeleton className="h-[70px] rounded-xl" />
                   </Card>
                 ) : (
-                  <Card
-                    key={index}
-                    className="rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 w-full relative"
-                  >
+                  <Card className="rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 w-full relative">
                     <div className="flex flex-col md:flex-row md:items-end">
                       <div className="flex items-center gap-4">
                         <div
@@ -358,7 +342,7 @@ const Contributors = () => {
                     </div>
                   </Card>
                 )}
-              </>
+              </div>
             ))}
           </>
         )}
