@@ -86,7 +86,6 @@ export const useFestivalStore = create<FestivalState>()(
           return data.success;
         } catch (error: any) {
           console.error("Error fetching festivals:", error);
-          toast.error(error.response.data.message);
         } finally {
           set({ isLoading: false });
         }
@@ -107,7 +106,6 @@ export const useFestivalStore = create<FestivalState>()(
           return data?.success;
         } catch (error: any) {
           console.error("Error adding festival:", error);
-          toast.error(error.response.data.message);
         } finally {
           set({ isbtnLoading: false });
         }
@@ -133,7 +131,6 @@ export const useFestivalStore = create<FestivalState>()(
           return data?.success;
         } catch (error: any) {
           console.error("Error updating festival:", error);
-          toast.error(error.response.data.message);
         } finally {
           set({ isbtnLoading: false });
         }
@@ -156,7 +153,6 @@ export const useFestivalStore = create<FestivalState>()(
           return data?.success;
         } catch (error: any) {
           console.error("Error deleting festival:", error);
-          toast.error(error.response.data.message);
         } finally {
           set({ isbtnLoading: false });
         }
@@ -197,9 +193,6 @@ export const useFestivalStore = create<FestivalState>()(
           return data?.success;
         } catch (error: any) {
           console.error("Error getting contributions PDF:", error);
-          toast.error(
-            error.response?.data?.message || "Failed to generate report"
-          );
         } finally {
           set({ isPdfLoading: false });
         }

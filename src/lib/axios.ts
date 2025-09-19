@@ -22,52 +22,52 @@ axiosInstance.interceptors.request.use(
 );
 
 // Response Interceptor: Handle token expiration and refresh
-// axiosInstance.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-//     if (error.response?.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
+    if (error.response?.status === 423 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-//       const { tokens, setTokens, logout } = useAuthStore.getState();
+      const { tokens, setTokens, logout } = useAuthStore.getState();
 
-//       if (!tokens.refreshToken) {
-//         logout();
-//         return Promise.reject(error);
-//       }
+      if (!tokens.refreshToken) {
+        logout();
+        return Promise.reject(error);
+      }
 
-//       try {
-//         const res = await axios.post(
-//           `${API_URL}/auth/refresh-accesstoken`,
-//           { refreshToken: tokens.refreshToken },
-//           { withCredentials: true }
-//         );
+      try {
+        const res = await axios.post(
+          `${API_URL}/auth/refresh-accesstoken`,
+          { refreshToken: tokens.refreshToken },
+          { withCredentials: true }
+        );
 
-//         const newAccessToken = res.data?.accessToken;
-//         const newRefreshToken = res.data?.refreshToken;
+        const newAccessToken = res?.data?.data?.accessToken;
+        const newRefreshToken = res?.data?.data?.refreshToken;
 
-//         if (newAccessToken && newRefreshToken) {
-//           setTokens({
-//             accessToken: newAccessToken,
-//             refreshToken: newRefreshToken,
-//           });
+        if (newAccessToken && newRefreshToken) {
+          setTokens({
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+          });
 
-//           // Retry the original request with new access token
-//           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-//           return axiosInstance(originalRequest);
-//         } else {
-//           logout();
-//           return Promise.reject(error);
-//         }
-//       } catch (refreshError) {
-//         logout();
-//         return Promise.reject(refreshError);
-//       }
-//     }
+          // Retry the original request with new access token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return axiosInstance(originalRequest);
+        } else {
+          logout();
+          return Promise.reject(error);
+        }
+      } catch (refreshError) {
+        logout();
+        return Promise.reject(refreshError);
+      }
+    }
 
-//     return Promise.reject(error);
-//   }
-// );
+    return Promise.reject(error);
+  }
+);
 
 export default axiosInstance;

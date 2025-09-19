@@ -117,7 +117,6 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error fetching contributors:", error);
-      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -134,7 +133,6 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error fetching contributors:", error);
-      toast.error(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }
@@ -153,7 +151,6 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error adding contributor:", error);
-      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -178,7 +175,6 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error updating contributor:", error);
-      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }
@@ -196,7 +192,6 @@ export const useContributorStore = create<ContributorState>((set, get) => ({
       return data?.success;
     } catch (error: any) {
       console.error("Error deleting contributor:", error);
-      toast.error(error.response.data.message);
     } finally {
       set({ isbtnLoading: false });
     }

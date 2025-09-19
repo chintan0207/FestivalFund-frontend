@@ -117,13 +117,19 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
-          await axiosInstance.post("/auth/logout");
+          const { tokens } = useAuthStore.getState();
+
+          await axiosInstance.post("/auth/logout", {
+            refreshToken: tokens.refreshToken,
+          });
+
           set({
             tokens: { accessToken: null, refreshToken: null },
             isAuthenticated: false,
             user: null,
             isAdmin: false,
           });
+
           toast.success("Logout successful");
         } catch (error) {
           console.error("Logout error:", error);
