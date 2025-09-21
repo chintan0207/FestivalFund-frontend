@@ -452,7 +452,16 @@ const Contributions = () => {
           </Button>
         </div>
         <div className="space-y-4">
-          {contributions.length === 0 ? (
+          {isLoading ? (
+            <>
+              {[...Array(3)].map((_, index) => (
+                <Card key={index} className="p-0 border-0">
+                  <Skeleton className="h-[120px] rounded-xl" />
+                </Card>
+              ))}
+            </>
+          ) : contributions.length === 0 ? (
+            // No contributions found
             <Card variant="outlined" className="flex flex-col items-center p-6">
               <User className="w-10 h-10 mb-2" />
               <h3 className="text-xl font-semibold mb-2">
@@ -470,164 +479,144 @@ const Contributions = () => {
             </Card>
           ) : viewMode === "minimal" ? (
             contributions.map((c) => (
-              <>
-                {isLoading ? (
-                  <Card className="p-0 border-0">
-                    <Skeleton className="h-[40px] rounded-xl" />
-                  </Card>
-                ) : (
-                  <Card
-                    key={c._id}
-                    className="rounded-xl p-3 shadow-sm hover:shadow-md"
+              <Card
+                key={c._id}
+                className="rounded-xl p-3 shadow-sm hover:shadow-md"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium truncate">
+                    {c?.contributor?.name}
+                  </span>
+
+                  <span className="font-semibold">
+                    {c.type === "cash"
+                      ? formatCurrency(c.amount)
+                      : c.itemName || "N/A"}
+                  </span>
+
+                  <span
+                    className={`status-badge ${
+                      c.status === ContributionStatusEnum.DEPOSITED
+                        ? "bg-green-100 text-green-700"
+                        : c.status === ContributionStatusEnum.PENDING
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    } text-xs px-2 py-0.5 rounded-full whitespace-nowrap`}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-medium truncate">
-                        {c?.contributor?.name}
-                      </span>
-
-                      <span className="font-semibold">
-                        {c.type === "cash"
-                          ? formatCurrency(c.amount)
-                          : c.itemName || "N/A"}
-                      </span>
-
-                      <span
-                        className={`status-badge ${
-                          c.status === ContributionStatusEnum.DEPOSITED
-                            ? "bg-green-100 text-green-700"
-                            : c.status === ContributionStatusEnum.PENDING
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        } text-xs px-2 py-0.5 rounded-full whitespace-nowrap`}
-                      >
-                        {capitalize(c.status)}
-                      </span>
-                    </div>
-                  </Card>
-                )}
-              </>
+                    {capitalize(c.status)}
+                  </span>
+                </div>
+              </Card>
             ))
           ) : (
             contributions.map((c, index) => (
-              <>
-                {isLoading ? (
-                  <Card className="p-0 border-0">
-                    <Skeleton className="h-[120px] rounded-xl" />
-                  </Card>
-                ) : (
-                  <Card
-                    key={c._id}
-                    className="rounded-2xl p-4 shadow-sm hover:shadow-md relative"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 ${
-                            colors[index % colors.length]
-                          } rounded-full flex items-center justify-center text-white font-bold text-base shadow-md`}
-                        >
-                          {c?.contributor?.name?.charAt(0).toUpperCase()}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base truncate">
-                            {c?.contributor?.name}
-                          </h3>
-                        </div>
-
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
-                            c.status === ContributionStatusEnum.DEPOSITED
-                              ? "bg-green-100 text-green-700 font-semibold"
-                              : c.status === ContributionStatusEnum.PENDING
-                              ? "bg-yellow-100 text-yellow-700 font-semibold"
-                              : "bg-red-100 text-red-700 font-semibold"
-                          }`}
-                        >
-                          {capitalize(c.status)}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center text-sm">
-                        <div>
-                          <span className="text-gray-500 text-xs">
-                            {c.type === "cash" ? "Amount" : "Item"}
-                          </span>
-                          <p className="font-semibold text-base">
-                            {c.type === "cash"
-                              ? formatCurrency(c.amount)
-                              : c.itemName || "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Date</span>
-                          <p className="font-medium text-sm">
-                            {new Date(c.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      {isAdmin && (
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-                          {/* Status Select */}
-                          <Select
-                            value={c.status}
-                            onValueChange={(value) =>
-                              handleStatusChange(c._id, value, c)
-                            }
-                          >
-                            <SelectTrigger className="w-full sm:w-[180px] border border-gray-200 rounded-lg text-sm">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent className="w-full sm:w-[180px]">
-                              {Object.values(ContributionStatusEnum).map(
-                                (status) => (
-                                  <SelectItem key={status} value={status}>
-                                    {status.charAt(0).toUpperCase() +
-                                      status.slice(1)}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-
-                          {/* Actions */}
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto justify-end">
-                            {c.status === ContributionStatusEnum.DEPOSITED && (
-                              <Button
-                                variant="outline"
-                                onClick={() => handleGenerateReceipt(c._id)}
-                                disabled={loadingSlipId === c._id}
-                                className="w-full sm:w-auto flex items-center justify-center gap-2"
-                              >
-                                {loadingSlipId === c._id ? (
-                                  <Loader2Icon className="animate-spin w-4 h-4" />
-                                ) : (
-                                  <Download className="w-4 h-4" />
-                                )}
-                                Generate Receipt
-                              </Button>
-                            )}
-
-                            <div>
-                              <button
-                                onClick={() => handleEditContribution(c)}
-                                className="p-2 hover:bg-blue-50 rounded-full transition-colors self-start sm:self-auto"
-                              >
-                                <Edit className="w-5 h-5 text-blue-500" />
-                              </button>
-
-                              <DeleteContributionDialog
-                                contributionId={c._id}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
+              <Card
+                key={c._id}
+                className="rounded-2xl p-4 shadow-sm hover:shadow-md relative"
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 ${
+                        colors[index % colors.length]
+                      } rounded-full flex items-center justify-center text-white font-bold text-base shadow-md`}
+                    >
+                      {c?.contributor?.name?.charAt(0).toUpperCase()}
                     </div>
-                  </Card>
-                )}
-              </>
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base truncate">
+                        {c?.contributor?.name}
+                      </h3>
+                    </div>
+
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                        c.status === ContributionStatusEnum.DEPOSITED
+                          ? "bg-green-100 text-green-700 font-semibold"
+                          : c.status === ContributionStatusEnum.PENDING
+                          ? "bg-yellow-100 text-yellow-700 font-semibold"
+                          : "bg-red-100 text-red-700 font-semibold"
+                      }`}
+                    >
+                      {capitalize(c.status)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm">
+                    <div>
+                      <span className="text-gray-500 text-xs">
+                        {c.type === "cash" ? "Amount" : "Item"}
+                      </span>
+                      <p className="font-semibold text-base">
+                        {c.type === "cash"
+                          ? formatCurrency(c.amount)
+                          : c.itemName || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 text-xs">Date</span>
+                      <p className="font-medium text-sm">
+                        {new Date(c.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isAdmin && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+                      <Select
+                        value={c.status}
+                        onValueChange={(value) =>
+                          handleStatusChange(c._id, value, c)
+                        }
+                      >
+                        <SelectTrigger className="w-full sm:w-[180px] border border-gray-200 rounded-lg text-sm">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent className="w-full sm:w-[180px]">
+                          {Object.values(ContributionStatusEnum).map(
+                            (status) => (
+                              <SelectItem key={status} value={status}>
+                                {status.charAt(0).toUpperCase() +
+                                  status.slice(1)}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto justify-end">
+                        {c.status === ContributionStatusEnum.DEPOSITED && (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleGenerateReceipt(c._id)}
+                            disabled={loadingSlipId === c._id}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2"
+                          >
+                            {loadingSlipId === c._id ? (
+                              <Loader2Icon className="animate-spin w-4 h-4" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                            Generate Receipt
+                          </Button>
+                        )}
+
+                        <div>
+                          <button
+                            onClick={() => handleEditContribution(c)}
+                            className="p-2 hover:bg-blue-50 rounded-full transition-colors self-start sm:self-auto"
+                          >
+                            <Edit className="w-5 h-5 text-blue-500" />
+                          </button>
+
+                          <DeleteContributionDialog contributionId={c._id} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
             ))
           )}
         </div>

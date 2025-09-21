@@ -95,6 +95,13 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
         };
       }
 
+      if (options?.festivalId) {
+        combinedData = {
+          ...combinedData,
+          festivalId: options?.festivalId,
+        };
+      }
+
       const queryParams = createQueryParams(combinedData);
 
       const { data } = await axiosInstance.get(`/expenses${queryParams}`);

@@ -85,7 +85,6 @@ const Contributors = () => {
   // Restore filters only on reload, reset on navigation back
   // We restore the filter/query state from URL, then call fetchContributors once.
   useEffect(() => {
-
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const search = searchParams.get("search") || "";
@@ -245,9 +244,17 @@ const Contributors = () => {
           ))}
         </div>
       </Card>
-
       <div className="space-y-4">
-        {contributors?.length === 0 ? (
+        {isLoading ? (
+          <>
+            {[...Array(3)].map((_, index) => (
+              <Card key={index} className="p-0 border-0">
+                <Skeleton className="h-[70px] rounded-xl" />
+              </Card>
+            ))}
+          </>
+        ) : contributors?.length === 0 ? (
+          // No contributors found
           <Card variant="outlined" className="flex flex-col items-center">
             <User className="w-10 h-10 " />
             <h3 className="text-xl font-semibold">No contributors found</h3>
@@ -265,80 +272,76 @@ const Contributors = () => {
                 </Button>
               )}
             </div>
+
             {contributors?.map((contributor, index) => (
-              <div key={contributor?._id ?? index}>
-                {isLoading ? (
-                  <Card className="p-0 border-0">
-                    <Skeleton className="h-[70px] rounded-xl" />
-                  </Card>
-                ) : (
-                  <Card className="rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 w-full relative">
-                    <div className="flex flex-col md:flex-row md:items-end">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-10 h-10 ${
-                            colors[index % colors.length]
-                          } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
-                        >
-                          {contributor?.name?.charAt(0).toUpperCase() ?? "?"}
-                        </div>
+              <Card
+                key={contributor?._id ?? index}
+                className="rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 w-full relative"
+              >
+                <div className="flex flex-col md:flex-row md:items-end">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-10 h-10 ${
+                        colors[index % colors.length]
+                      } rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+                    >
+                      {contributor?.name?.charAt(0).toUpperCase() ?? "?"}
+                    </div>
 
-                        <div className="flex flex-col gap-1">
-                          {contributor?.name && (
-                            <h3 className="font-semibold text-base text-gray-900">
-                              {contributor.name}
-                            </h3>
-                          )}
-                          {contributor?.category && (
-                            <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full w-fit">
-                              {contributor.category}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex flex-col gap-1">
+                      {contributor?.name && (
+                        <h3 className="font-semibold text-base text-gray-900">
+                          {contributor.name}
+                        </h3>
+                      )}
+                      {contributor?.category && (
+                        <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full w-fit">
+                          {contributor.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                      {(contributor?.phoneNumber || contributor?.address) && (
-                        <div className="flex flex-col gap-2 text-sm text-gray-600 pl-1 mt-3 ml-3">
-                          {contributor?.phoneNumber && (
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-gray-500" />
-                              <a
-                                href={`tel:${contributor.phoneNumber}`}
-                                className="hover:underline focus:outline-none"
-                              >
-                                {contributor.phoneNumber}
-                              </a>
-                            </div>
-                          )}
-                          {contributor?.address && (
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-gray-500" />
-                              <span className="break-words">
-                                {contributor.address}
-                              </span>
-                            </div>
-                          )}
+                  {(contributor?.phoneNumber || contributor?.address) && (
+                    <div className="flex flex-col gap-2 text-sm text-gray-600 pl-1 mt-3 ml-3">
+                      {contributor?.phoneNumber && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <a
+                            href={`tel:${contributor.phoneNumber}`}
+                            className="hover:underline focus:outline-none"
+                          >
+                            {contributor.phoneNumber}
+                          </a>
                         </div>
                       )}
-
-                      {isAdmin && (
-                        <div className="flex justify-end gap-3 md:absolute md:top-4 md:right-4">
-                          <button
-                            onClick={() => handleEditContributor(contributor)}
-                            className="p-2 hover:bg-blue-50 rounded-full transition-colors"
-                          >
-                            <Edit className="w-5 h-5 text-blue-500" />
-                          </button>
-                          <DeleteContributorDialog
-                            contributorId={contributor._id}
-                            contributorName={contributor.name}
-                          />
+                      {contributor?.address && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-gray-500" />
+                          <span className="break-words">
+                            {contributor.address}
+                          </span>
                         </div>
                       )}
                     </div>
-                  </Card>
-                )}
-              </div>
+                  )}
+
+                  {isAdmin && (
+                    <div className="flex justify-end gap-3 md:absolute md:top-4 md:right-4">
+                      <button
+                        onClick={() => handleEditContributor(contributor)}
+                        className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                      >
+                        <Edit className="w-5 h-5 text-blue-500" />
+                      </button>
+                      <DeleteContributorDialog
+                        contributorId={contributor._id}
+                        contributorName={contributor.name}
+                      />
+                    </div>
+                  )}
+                </div>
+              </Card>
             ))}
           </>
         )}

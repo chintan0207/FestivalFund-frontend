@@ -34,10 +34,13 @@ import { Pagination } from "../ui/Pagination";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DeleteExpenseDialog } from "./DeleteExpenseDialog";
 import { useFestivalStore } from "@/store/useFestivalStore";
+import { Skeleton } from "../ui/skeleton";
 
 const Expenses = () => {
   const { getFestivalStats, currentFestival, festivalStats } =
     useFestivalStore();
+
+  console.log("currentFestival", currentFestival);
 
   const summaryCards = [
     {
@@ -91,6 +94,7 @@ const Expenses = () => {
     addExpense,
     updateExpense,
     fetchExpenses,
+    isLoading,
     searchFilter,
     setSearchFilter,
     queryData,
@@ -127,7 +131,7 @@ const Expenses = () => {
   // Fetch expenses on changes (skip until after initial restore)
   useEffect(() => {
     if (!initialLoadRef.current) return;
-    fetchExpenses();
+    fetchExpenses({ festivalId: currentFestival?._id });
   }, [searchFilter, queryData, sorting]);
 
   // Cleanup debounce
@@ -158,7 +162,7 @@ const Expenses = () => {
       setQueryData({ ...queryData, page, limit });
 
       timeout = setTimeout(() => {
-        fetchExpenses();
+        fetchExpenses({ festivalId: currentFestival?._id });
         initialLoadRef.current = true;
       }, 0);
     } else {
@@ -168,7 +172,7 @@ const Expenses = () => {
       setQueryData({ page: 1, limit: 10 });
 
       timeout = setTimeout(() => {
-        fetchExpenses();
+        fetchExpenses({ festivalId: currentFestival?._id });
         initialLoadRef.current = true;
       }, 0);
     }
@@ -355,7 +359,17 @@ const Expenses = () => {
 
       {/* Expense list */}
       <div className="space-y-4">
-        {expenses.length === 0 ? (
+        {isLoading ? (
+          // Loader placeholders
+          <>
+            {[...Array(3)].map((_, index) => (
+              <Card key={index} className="p-0 border-0">
+                <Skeleton className="h-[120px] rounded-2xl" />
+              </Card>
+            ))}
+          </>
+        ) : expenses.length === 0 ? (
+          // No expenses found
           <Card className="flex flex-col items-center p-12">
             <Receipt className="w-16 h-16 text-gray-400 mb-4" />
             <h3 className="text-xl font-semibold">No expenses found</h3>
@@ -373,6 +387,7 @@ const Expenses = () => {
             )}
           </Card>
         ) : (
+          // Render expense list
           expenses.map((expense: Expense) => (
             <Card key={expense._id} className="rounded-2xl p-4 gap-2">
               <div className="flex items-start gap-3">
