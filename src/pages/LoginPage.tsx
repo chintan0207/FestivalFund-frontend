@@ -44,7 +44,7 @@ const LoginPage = () => {
 
     const success = await login(formData.email, formData.password);
     if (success) {
-      navigate("/");
+      navigate("/dashboard");
     } else {
       toast.error("Login failed. Please check your credentials.");
     }

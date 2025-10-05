@@ -10,17 +10,21 @@ import Expenses from "./components/expenses/Expenses";
 import Reports from "./components/reports/Reports";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import Settings from "./components/settings/Settings";
+import LandingPage from "./pages/LandingPage";
 
 const App = () => {
   return (
     <>
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="contributions" element={<Contributions />} />
               <Route path="contributors" element={<Contributors />} />

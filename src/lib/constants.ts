@@ -1,6 +1,6 @@
 // export const API_URL = "https://festivalfund-backend.onrender.com/api";
-// export const API_URL = "http://localhost:8081/api";
-export const API_URL = "https://api.festivalfund.live/api";
+export const API_URL = "http://localhost:8081/api";
+// export const API_URL = "https://api.festivalfund.live/api";
 
 
 export const colors = [
